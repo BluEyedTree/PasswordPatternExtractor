@@ -1,42 +1,29 @@
 import shelve
-
-
-
+import psutil
 
 
 
 class DiskDic():
     #A class to write data to dictionary that is stored on disk vs memory
     def __init__(self, dbFilePath):
-        self.dbFilePath = "substring.db"
         self.dbFilePath = dbFilePath
+        self.dbFilePath = dbFilePath
+        self.shelf = shelve.open(self.dbFilePath,'n',writeback=True)
 
     def add(self, subStringToAdd):
-        with shelve.open(self.dbFilePath, 'c') as shelf:
-            try:
-                shelf[subStringToAdd] += 1
-            except KeyError:
-                shelf[subStringToAdd] = 1
+        strippedSubstringToAdd = subStringToAdd.rstrip()
+        if(psutil.virtual_memory().percent > 80):
+            self.shelf.sync()
 
 
-'''
-Below is an example of how to make a dbm with python
-'''
+        try:
+            oldValue = self.shelf[strippedSubstringToAdd]
+            self.shelf[strippedSubstringToAdd] = oldValue+1
 
 
-'''
-with shelve.open('substring', 'c') as shelf:
-    shelf['ints'] = 2
+        except KeyError:
+            self.shelf[strippedSubstringToAdd] = 1
 
+    def close(self):
+        self.shelf.close()
 
-with shelve.open('substring', 'c') as shelf:
-    shelf['meh'] = 1
-
-with shelve.open('substring', 'c')  as shelf:
-    print(shelf["meh"])
-    print(shelf["ints"])
-    try:
-        print(shelf["sdas"]) #TODO Use try catch to deal with the case where an entry doesn't already exist
-    except KeyError:
-        shelf["sdas"]=1
-'''
