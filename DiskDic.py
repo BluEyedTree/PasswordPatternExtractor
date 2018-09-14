@@ -7,8 +7,10 @@ class DiskDic():
     #A class to write data to dictionary that is stored on disk vs memory
     def __init__(self, dbFilePath):
         self.dbFilePath = dbFilePath
-        self.dbFilePath = dbFilePath
         self.shelf = shelve.open(self.dbFilePath,'n',writeback=True)
+
+
+
 
     def add(self, subStringToAdd):
         strippedSubstringToAdd = subStringToAdd.rstrip()
@@ -25,5 +27,6 @@ class DiskDic():
             self.shelf[strippedSubstringToAdd] = 1
 
     def close(self):
+        self.shelf.sync()
         self.shelf.close()
 
