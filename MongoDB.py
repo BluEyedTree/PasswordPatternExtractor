@@ -10,7 +10,7 @@ class MongoDB():
     def __init__(self, dbFilePath):
         self.dbFilePath = dbFilePath
         self.client = MongoClient('localhost', 27017)
-        self.db = self.client['Research_Initial_Test'] #Might have to change this back to mydb
+        self.db = self.client['Substring_Research'] #Might have to change this back to mydb
         self.collection = self.db[dbFilePath]
 
 

@@ -26,19 +26,4 @@ with open("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/to
 
 
 
-'''
-
-with open("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt", encoding="utf-8") as f:
-    for line in f:
-        try:
-            my_str_as_bytes = str.encode(line)
-            my_str_as_bytes.decode("utf-8")
-            my_decoded_str = my_str_as_bytes.decode()
-            line.encode('utf-8')
-        except:
-            print("FUCK")
-        iter_count += 1
-        if (iter_count % 1000 == 0):
-            print(str(iter_count / rockYouLength * 100) + str("% Done"))
-'''
 

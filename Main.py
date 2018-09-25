@@ -1,16 +1,17 @@
-import DiskDic
-import shelve
+from MongoDB import MongoDB
 import re
 
 
-dictionary= DiskDic.DiskDic("substring")
-dictionary_regex = DiskDic.DiskDic("regex")
+#dictionary_regex = MongoDB("regex")
+dictionary= MongoDB("basic_test")
+
+
 
 def subStringFinder(word):
     for i in range(1,len(word)):
         for j in range(0,len (word)-i):
             wordToAdd = word[j:j+i+1]
-            if (len(wordToAdd) < 8): #Only words under 7 chars will be added
+            if (len(wordToAdd) > 2 and len(wordToAdd) < 5):
                 dictionary.add(wordToAdd)
 
 
@@ -35,19 +36,22 @@ def regexFinder(word):
 
 def main(filePath):
     iter_count = 0
-    rockYouLength = 24342374
-    with open(filePath) as infile:
+    rockYouLength = 5903000
+    print(filePath)
+    with open(filePath, encoding="utf-8") as infile:
         for line in infile:
+            #print(line)
             iter_count += 1
-            if (iter_count % 1000 == 0):
+            if (iter_count % 100 == 0):
                 print(str(iter_count / rockYouLength * 100) + str("% Done"))
+            line = line.rstrip("\n")
             subStringFinder(line)
-            regexFinder(line)
+            #regexFinder(line)
 
     dictionary.close()
-    dictionary_regex
+    #dictionary_regex.close()
 
-main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/totalList.txt")
+main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/test.txt")
 
 
 

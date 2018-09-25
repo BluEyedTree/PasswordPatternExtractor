@@ -1,7 +1,11 @@
 from pymongo import MongoClient
+import pymongo
 client = MongoClient('localhost', 27017)
-db = client["Research_Initial_Test"]
-collection = db["substring_2"]
+#db = client["Research_Initial_Test"]
+#collection = db["regex"]
+
+db = client["Substring_Research"]
+collection = db["substring_Length3and4"]
 
 '''
 #Make new item
@@ -18,6 +22,7 @@ collection.update_one({'_id':"test"}, {"$set": {"value": oldValue+1}}, upsert=Fa
 
 print(collection.find_one("test"))
 '''
+
 client['Research_Initial_Test']
 '''
 newD = {}
@@ -26,5 +31,10 @@ for obj in collection.find():
 print(newD)
 client.close()
 '''
-for obj in collection.find():
+count = 0
+for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
+    pass
+    #count +=obj["value"]
+    #count += 1
     print(obj)
+print(count)
