@@ -3,7 +3,7 @@ import re
 '''
 The purpose of this script is to analyze the coverage that regex's provide.
 A little more specific is:
-What percent of length 13 words are described by the top 10% of regular expressions
+What percent of length 13 words are described by the top regular expressions imported from the Regex_toFormat.txt
 '''
 
 
@@ -62,13 +62,13 @@ count_r_12 = 0
 count_13 = 0
 count_r_13 = 0
 
-rockYouLength =  14344391
+rockYouLength =  10000000
 iter_count =0
-with open("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/rockyou.txt", encoding="latin-1") as f:
+with open("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/mySpace.txt", encoding="latin-1") as f:
     for line in f:
         line = line.strip() #Removes new line charecters
         iter_count +=1
-        if (iter_count  % 100000x == 0):
+        if (iter_count  % 100000 == 0):
             print(str(iter_count/rockYouLength * 100) + str("% Done"))
 
         if(len(line) == 2):
@@ -148,64 +148,98 @@ with open("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/ro
                 if (len(line) == 13):
                     count_r_13 += 1
                 break
+try:
+    print("Length 2.......")
+    print(str(count_r_2/count_2 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 2.......")
-print(str(count_r_2/count_2 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 3.......")
+    print(str(count_r_3/count_3 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 3.......")
-print(str(count_r_3/count_3 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 4.......")
+    print(str(count_r_4/count_4 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
 
+except:
+    pass
 
-print("Length 4.......")
-print(str(count_r_4/count_4 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 5.......")
+    print(str(count_r_5/count_5 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 5.......")
-print(str(count_r_5/count_5 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 6.......")
+    print(str(count_r_6/count_6 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 6.......")
-print(str(count_r_6/count_6 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 7.......")
+    print(str(count_r_7/count_7 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 7.......")
-print(str(count_r_7/count_7 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 8.......")
+    print(str(count_r_8/count_8 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 8.......")
-print(str(count_r_8/count_8 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 9.......")
+    print(str(count_r_9/count_9 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 9.......")
-print(str(count_r_9/count_9 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 10.......")
+    print(str(count_r_10/count_10 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 10.......")
-print(str(count_r_10/count_10 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 11.......")
+    print(str(count_r_11/count_11 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
 
-print("Length 11.......")
-print(str(count_r_11/count_11 * 100)  +"%")
-print("---------------------")
-print("                     ")
-
-print("Length 12.......")
-print(str(count_r_12/count_12 * 100)  +"%")
-print("---------------------")
-print("                     ")
-
-print("Length 13.......")
-print(str(count_r_13/count_13 * 100)  +"%")
-print("---------------------")
-print("                     ")
+try:
+    print("Length 12.......")
+    print(str(count_r_12/count_12 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass
+try:
+    print("Length 13.......")
+    print(str(count_r_13/count_13 * 100)  +"%")
+    print("---------------------")
+    print("                     ")
+except:
+    pass

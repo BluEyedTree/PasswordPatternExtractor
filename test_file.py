@@ -1,5 +1,5 @@
 import Main
-import DiskDic
+import MongoDB
 import shelve
 import os
 
@@ -18,7 +18,7 @@ def test_diskDic_adding_element():
     with shelve.open('testDB', 'c') as shelf:
         pass
 
-    diskdic = DiskDic.DiskDic("testDB")
+    diskdic = MongoDB.MongoDB("testDB")
     diskdic.add("Hello")
     diskdic.add("Hello")
 
