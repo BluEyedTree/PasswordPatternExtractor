@@ -6,9 +6,9 @@ while [ $counter -le 20 ]
 	echo $counter
 	echo $counter
 	((counter++))
-	count=`awk -v n=$counter '{for (i=1; i<=NF; i++) if (length($i) == n) print $i}' totalList.txt | wc -l`
+	count=`awk -v n=$counter '{for (i=1; i<=NF; i++) if (length($i) == n) print $i}' UTF8_Formatted.txt | wc -l`
 	echo $count
-	python -c "print (float($count)/24344391)*100"
+	python -c "print (float($count)/24342374)*100"
 	done
 	echo All done
 
