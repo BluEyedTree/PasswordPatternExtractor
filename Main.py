@@ -3,7 +3,7 @@ import re
 
 
 #dictionary_regex = MongoDB("regex")
-dictionary= MongoDB("basic_test")
+dictionary= MongoDB("substring_Length5to8")
 
 
 
@@ -11,7 +11,7 @@ def subStringFinder(word):
     for i in range(1,len(word)):
         for j in range(0,len (word)-i):
             wordToAdd = word[j:j+i+1]
-            if (len(wordToAdd) > 2 and len(wordToAdd) < 5):
+            if (len(wordToAdd) > 4 and len(wordToAdd) < 9):
                 dictionary.add(wordToAdd)
 
 

@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from pymongo import UpdateOne
 
 
 #collection.save({'_id' : "test", 'value' : 2})
@@ -12,24 +13,23 @@ class MongoDB():
         self.client = MongoClient('localhost', 27017)
         self.db = self.client['Substring_Research'] #Might have to change this back to mydb
         self.collection = self.db[dbFilePath]
-
+        self.count =0
+        self.batchList = []
 
 
 
     def add(self, subStringToAdd):
-        strippedSubstringToAdd = subStringToAdd.rstrip()
-        #if(psutil.virtual_memory().percent > 80):
-         #   self.shelf.sync()
+        self.count +=1
 
-        #The case where you insert a new value
-        if(self.collection.find_one(subStringToAdd) == None):
-            self.collection.save({'_id': subStringToAdd, 'value': 1})
-        #Case where you found the value
+        if( self.count <1000000):
+            self.batchList.append(UpdateOne({'_id': subStringToAdd}, {'$inc': {'value': 1}}, upsert=True))
 
-        else:
-            oldValue = self.collection.find_one(subStringToAdd)['value']
-            self.collection.update_one({'_id': subStringToAdd}, {"$set": {"value": oldValue + 1}}, upsert=False)
+        elif(self.count == 1000000):
+            self.collection.bulk_write(self.batchList)
+            self.count = 0
+            self.batchList.clear()
 
     def close(self):
+        self.collection.bulk_write(self.batchList)
         self.client.close()
 

@@ -4,8 +4,8 @@ client = MongoClient('localhost', 27017)
 #db = client["Research_Initial_Test"]
 #collection = db["regex"]
 
-db = client["Substring_Research"]
-collection = db["substring_Length3and4"]
+db = client["basic_test"]
+collection = db["test"]
 
 '''
 #Make new item
@@ -31,10 +31,21 @@ for obj in collection.find():
 print(newD)
 client.close()
 '''
+#This line is what does the updating. This single line will place new values in if they don't exist, and update ones that do
+#UpdateOne({'_id': "bam"}, {'$inc': {'value': 1}}, upsert=True)
+
+
+
+
+#collection.update_one({'_id': "bam"}, {'$inc': {'value': 1}}, upsert=True)
 count = 0
 for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
     pass
     #count +=obj["value"]
     #count += 1
+    #collection.update_one({'_id': 4}, {'$inc': {'j': 1}}, upsert=True)
     print(obj)
+
+
 print(count)
+
