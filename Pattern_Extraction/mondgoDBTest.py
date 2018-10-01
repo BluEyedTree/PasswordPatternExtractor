@@ -4,9 +4,12 @@ client = MongoClient('localhost', 27017)
 #db = client["Research_Initial_Test"]
 #collection = db["regex"]
 
+#db = client["Association_Rules"]
+#collection = db["Association_Rules_half_data_0.1_Confidence"]
+
+
 db = client["test"]
 collection = db["test"]
-
 '''
 #Make new item
 collection.save({'_id' : "test", 'value' : 2})

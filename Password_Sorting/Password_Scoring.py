@@ -64,10 +64,17 @@ def common_substring_coverage(password):
             password = password.replace(substring, "")
 
 
-    coverage = password_length-len(password)
-    #Score might be incorrect, I'm not sure if coverage/not coverage
-    score = 1.5**((coverage/password_length) * 10)
+    uncovered = len(password)
+    #Score might be incorrect, I'm not sure if coveragfirstANNModele/not coverage
+    score = 1.5**((uncovered/password_length) * 10)
     return score
 
+
+
+
+
+
+
 #Coverage 2, length 4
-print(common_substring_coverage("cast"))
+print(password_score_based_on_length("castr"))
+print(common_substring_coverage("castr"))
