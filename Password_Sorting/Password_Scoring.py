@@ -77,7 +77,6 @@ def common_substring_coverage(password):
 
 
     uncovered = len(password)
-    #Score might be incorrect, I'm not sure if coveragfirstANNModele/not coverage
     score = 1.5**((uncovered/password_length) * 10)
     return score
 
@@ -107,20 +106,24 @@ def association_rule_coverage(password):
         first_word = association_rule.split("->")[0]
         second_word = association_rule.split("->")[1]
         if first_word in password and second_word in password:
-            association_rule_list.append((first_word,second_word))
+            association_rule_list.append((len(first_word)+len(second_word),first_word,second_word))
 
     #Both association rules need to be in the password. And if the association rule
     password_to_modify = password
-    for first_word, second_word in association_rule_list:
+    association_rule_list.sort(reverse=True)
+
+    for val,first_word, second_word in association_rule_list:
         if (first_word in password_to_modify  and second_word in password_to_modify and password_to_modify.find(first_word) < password_to_modify.find(second_word)):
             password_to_modify = password_to_modify.replace(first_word, "")
             password_to_modify = password_to_modify.replace(second_word, "")
 
-
     uncovered_by_association_rules = len(password_to_modify)
-    print(1.4**(uncovered_by_association_rules/len(password) * 10))
+    return(1.4**(uncovered_by_association_rules/len(password) * 10))
+'''
 
 
+
+'''
 
 
 
@@ -129,4 +132,4 @@ def association_rule_coverage(password):
 print(password_score_based_on_length("castr"))
 print(common_substring_coverage("castr"))
 
-association_rule_coverage("dancseexy")
+print(association_rule_coverage("ilove"))
