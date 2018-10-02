@@ -5,8 +5,8 @@ import re
 
 
 #MongoDB information
-SUBSTRING_DATABASE = "test"
-SUBSTRING_COLECTION = "test"
+SUBSTRING_DATABASE = "Substring_Research"
+SUBSTRING_COLECTION = "substring_Length3to8"
 
 ASSOCIATION_RULES_DATABASE = "Association_Rules"
 ASSOCIATION_RULES_COLLECTION = "Association_Rules_half_data_0.1_Confidence"
@@ -69,6 +69,7 @@ def common_substring_coverage(password):
 
     password_length = len(password)
     substringList = []
+    #TODO: Write script to create a db with top 30% of data
     for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
         if(obj["_id"] in password):
             substringList.append(obj["_id"])
@@ -158,8 +159,8 @@ def regex_rulecoverage(password):
 
 
 #Coverage 2, length 4
-#print(password_score_based_on_length("castr"))
-#print(common_substring_coverage("castr"))
+print(password_score_based_on_length("castr"))
+print(common_substring_coverage("castr"))
 
-#print(association_rule_coverage("ilove"))
-print(regex_rulecoverage("2aac2"))
+print(association_rule_coverage("castr"))
+print(regex_rulecoverage("castr"))
