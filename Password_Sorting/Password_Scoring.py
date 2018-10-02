@@ -1,6 +1,7 @@
 
 import pymongo
 from pymongo import MongoClient
+import re
 
 
 #MongoDB information
@@ -9,6 +10,9 @@ SUBSTRING_COLECTION = "test"
 
 ASSOCIATION_RULES_DATABASE = "Association_Rules"
 ASSOCIATION_RULES_COLLECTION = "Association_Rules_half_data_0.1_Confidence"
+
+REGEX_DATABASE = "Research_Initial_Test"
+REGEX_COLLECTION = "regex"
 
 #MongoDB objects
 client = MongoClient('localhost', 27017)
@@ -119,17 +123,43 @@ def association_rule_coverage(password):
 
     uncovered_by_association_rules = len(password_to_modify)
     return(1.4**(uncovered_by_association_rules/len(password) * 10))
-'''
-
 
 
 '''
+parameter four P4: normalized aggregate commonality of password pattern
+love12 matches l4d2 and l*d*. This is regex!
+
+assumption: all small letter is more frequent than small letters followed by numbers > numbers followed by small letters.
+
+CS: commonness score of a pattern [0, 1]
+0 --> not common at all
+1 --> very common.
+
+P4 = 1.3^(10*(1 - CS))
+
+all digit passwords are very common.
+justification: this puts emphasis on diversity of password structure, rather than just having symbols or digits in the password. If a password has a pattern that is very uncommon, it must have a highest score.
+
+We argue that P1 more important than P2, more important than P3, more important than P4.
+'''
+
+def regex_rulecoverage(password):
+    db = client[REGEX_DATABASE]
+    collection = db[REGEX_COLLECTION]
+
+    commonFlag = 0
+    for regex in collection.find():
+        if(re.match(regex["_id"], password) is not None):
+            commonFlag = 1
+
+    return 1.3**(10*(1-commonFlag))
 
 
 
 
 #Coverage 2, length 4
-print(password_score_based_on_length("castr"))
-print(common_substring_coverage("castr"))
+#print(password_score_based_on_length("castr"))
+#print(common_substring_coverage("castr"))
 
-print(association_rule_coverage("ilove"))
+#print(association_rule_coverage("ilove"))
+print(regex_rulecoverage("2aac2"))
