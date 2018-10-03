@@ -2,6 +2,7 @@
 import pymongo
 from pymongo import MongoClient
 import re
+import extract_top_x_percent_substring
 
 
 #MongoDB information
@@ -62,15 +63,17 @@ Input Password
 Output score
 '''
 
-
+cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.2)
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
 
     password_length = len(password)
     substringList = []
-    #TODO: Write script to create a db with top 30% of data
-    for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
+    #TODO: Write script to create a db with top 30% of data. Incorporate this to second line of todos
+    # TODO: Iterating through every substring is nuts. Take the input password. Calculate the substrings, then use those to lookup if the value is in the DB
+
+    for obj in collection.find():
         if(obj["_id"] in password):
             substringList.append(obj["_id"])
 
