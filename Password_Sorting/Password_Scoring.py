@@ -7,6 +7,7 @@ import Utils
 from datetime import datetime
 import pickle
 
+
 #MongoDB information
 SUBSTRING_DATABASE = "Substring_Research"
 SUBSTRING_COLECTION = "substring_Length3to8"
@@ -81,11 +82,10 @@ def common_substring_coverage(password):
                 and collection.find_one({"_id":obj})["value"] >= cutOff):
             substringList.append(obj)
 
-    sorted_substringList = sorted(substringList, key=len, reverse=True)
-
-    for substring in sorted_substringList:
-        if (substring in password):
-            password = password.replace(substring, "")
+    for substring in substringList:
+        chars = list(substring)
+        for char in chars:
+            password = password.replace(char, "")
 
 
     uncovered = len(password)
@@ -108,27 +108,34 @@ iloveyou
 
 Justification: These two passwords have 0 uncommon substrings, however, love567 is a better password than iloveyou, because ilove and you cooccur in many passwords.
 '''
+#The code is outside the method to prevent uneccesary repitition
+db = client[ASSOCIATION_RULES_DATABASE]
+collection = db[ASSOCIATION_RULES_COLLECTION]
+associations_from_database = []
+for obj in collection.find():
+    association_rule = obj["_id"]
+    first_word = association_rule.split("->")[0]
+    second_word = association_rule.split("->")[1]
+    associations_from_database.append((first_word,second_word))
 
 def association_rule_coverage(password):
-    db = client[ASSOCIATION_RULES_DATABASE]
-    collection = db[ASSOCIATION_RULES_COLLECTION]
 
     association_rule_list = []
-    for obj in collection.find():
-        association_rule = obj["_id"]
-        first_word = association_rule.split("->")[0]
-        second_word = association_rule.split("->")[1]
-        if first_word in password and second_word in password:
-            association_rule_list.append((len(first_word)+len(second_word),first_word,second_word))
+    for firstWord, secondWord  in associations_from_database:
+        if firstWord in password and secondWord in password \
+                and password.find(firstWord) < password.find(secondWord):
+            association_rule_list.append((firstWord,secondWord))
 
     #Both association rules need to be in the password. And if the association rule
     password_to_modify = password
-    association_rule_list.sort(reverse=True)
 
-    for val,first_word, second_word in association_rule_list:
-        if (first_word in password_to_modify  and second_word in password_to_modify and password_to_modify.find(first_word) < password_to_modify.find(second_word)):
-            password_to_modify = password_to_modify.replace(first_word, "")
-            password_to_modify = password_to_modify.replace(second_word, "")
+
+    for first_word, second_word in association_rule_list:
+        #We want to remove all the chars from both the 1st and 2nd word
+        chars_to_remove = list(first_word) + list(second_word)
+        for char in chars_to_remove:
+            password_to_modify = password_to_modify.replace(char, "")
+            password_to_modify = password_to_modify.replace(char, "")
 
     uncovered_by_association_rules = len(password_to_modify)
     return(1.4**(uncovered_by_association_rules/len(password) * 10))
@@ -152,13 +159,20 @@ justification: this puts emphasis on diversity of password structure, rather tha
 We argue that P1 more important than P2, more important than P3, more important than P4.
 '''
 
+#Outside the method to allow regex's from db to be built once, instead of for every password
+db = client[REGEX_DATABASE]
+collection = db[REGEX_COLLECTION]
+regex_list = []
+for regex in collection.find():
+    regex_list.append(regex)
+
 def regex_rulecoverage(password):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
 
     commonFlag = 0
-    for regex in collection.find():
-        if(re.match(regex["_id"], password) is not None):
+    for regeX in regex_list:
+        if(re.match(regeX["_id"], password) is not None):
             commonFlag = 1
 
     return 1.3**(10*(1-commonFlag))
@@ -200,7 +214,7 @@ main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Fo
 
 f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
 value_list = pickle.load(f)  # load file content as mydict
-print(value_list)
+#print(value_list)
 '''
 
 #print(extract_top_x_percent_substring.determinePercentageCutoff(0.2))
