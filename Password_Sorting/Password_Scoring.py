@@ -3,7 +3,9 @@ import pymongo
 from pymongo import MongoClient
 import re
 import extract_top_x_percent_substring
-
+import Utils
+from datetime import datetime
+import pickle
 
 #MongoDB information
 SUBSTRING_DATABASE = "Substring_Research"
@@ -38,11 +40,12 @@ Output: Score based on the password length
 '''
 def password_score_based_on_length(password):
     #Do normalization first
-    normalization = 0
+    normalization = len(password)/10
+
     if(len(password) >= 10):
         normalization = 1.0
     else:
-        normalization = len(password)/10
+        normalization = float(len(password))/float(10.0)
     return 2**(10*normalization)
 
 
@@ -63,19 +66,20 @@ Input Password
 Output score
 '''
 
-cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.2)
+cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.0001)
+#TODO: Deal with the edge case in your evernotes.
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
 
     password_length = len(password)
     substringList = []
-    #TODO: Write script to create a db with top 30% of data. Incorporate this to second line of todos
-    # TODO: Iterating through every substring is nuts. Take the input password. Calculate the substrings, then use those to lookup if the value is in the DB
 
-    for obj in collection.find():
-        if(obj["_id"] in password):
-            substringList.append(obj["_id"])
+    substrings = Utils.subStringFinder(password)
+    for obj in substrings:
+        if(collection.find_one({"_id":obj}) is not None
+                and collection.find_one({"_id":obj})["value"] >= cutOff):
+            substringList.append(obj)
 
     sorted_substringList = sorted(substringList, key=len, reverse=True)
 
@@ -104,6 +108,7 @@ iloveyou
 
 Justification: These two passwords have 0 uncommon substrings, however, love567 is a better password than iloveyou, because ilove and you cooccur in many passwords.
 '''
+
 def association_rule_coverage(password):
     db = client[ASSOCIATION_RULES_DATABASE]
     collection = db[ASSOCIATION_RULES_COLLECTION]
@@ -160,10 +165,54 @@ def regex_rulecoverage(password):
 
 
 
+'''
+THe main function runs all the rule coverage on an input list.
+It saves the data as a list in the following format:
+[(totalScore, p1_score, p2_score, p3_score, p4_score, word)]
+'''
+def main(filePath):
+    totalList = []
+    iter_count = 0
+    rockYouLength = 24342374
+
+    with open(filePath, encoding="utf-8") as infile:
+        for line in infile:
+            # print(line)
+            iter_count += 1
+            if (iter_count % 100 == 0):
+                print(str(iter_count / rockYouLength * 100) + str("% Done"))
+            line = line.rstrip("\n")
+
+            p1_score = password_score_based_on_length(line)
+            p2_score = common_substring_coverage(line)
+            p3_score = association_rule_coverage(line)
+            p4_score = regex_rulecoverage(line)
+            totalScore = p1_score + p2_score + p3_score + p4_score
+            tuple_to_add = (totalScore, p1_score, p2_score, p3_score, p4_score, line)
+            totalList.append(tuple_to_add)
+    #sorts on the first value, which in this case is the total score
+    totalList = sorted(totalList, key=lambda x: x[0], reverse=True)
+    f = open('scores.pkl', 'wb')   # Pickle file is newly created where foo1.py is         # dump data to f
+    pickle.dump(totalList,f)
+    f.close()
+
+main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt")
+
+f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
+value_list = pickle.load(f)  # load file content as mydict
+print(value_list)
+'''
+
+#print(extract_top_x_percent_substring.determinePercentageCutoff(0.2))
+#print(common_substring_coverage("abc123"))
+startTime = datetime.now()
 
 #Coverage 2, length 4
-print(password_score_based_on_length("castr"))
-print(common_substring_coverage("castr"))
+print(password_score_based_on_length("abc123"))
+print(common_substring_coverage("abc123"))
 
-print(association_rule_coverage("castr"))
-print(regex_rulecoverage("castr"))
+print(association_rule_coverage("abc123"))
+print(regex_rulecoverage("abc123"))
+#print((datetime.now() - startTime).total_seconds())
+
+'''
