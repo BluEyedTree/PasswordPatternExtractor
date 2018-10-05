@@ -2,10 +2,15 @@ from pymongo import MongoClient
 import pickle
 import math
 import numpy
+import os
+
+
+#TODO: Create pickling file for the associations DB. Then create a cutoff function
 
 '''
 The first step is to read through the mongoDB, and dump all the values into a list. This list is then pickled.
 This list will be sorted and used to create the X percentile cutoff
+SUBSTRING DATA
 '''
 def createValueListpickle():
 
@@ -40,9 +45,14 @@ So if you had the array:
 The cutoff would be 9. Thus values would need to be greater 9 to meet it
 '''
 def determinePercentageCutoff(percentile_cutoff):
-    f = open('valueList.pkl', 'rb')   # 'r' for reading; can be omitted
-    value_list = pickle.load(f)         # load file content as mydict
+    #Create the pickle file if it doesn't exist
+    if (not os.path.isfile('valueList.pkl')):
+        createValueListpickle()
+
+    f = open('valueList.pkl', 'rb')  # 'r' for reading; can be omitted
+    value_list = pickle.load(f)  # load file content as mydict
     f.close()
+
 
     cutOff = value_list[round(len(value_list) * percentile_cutoff)]
 
