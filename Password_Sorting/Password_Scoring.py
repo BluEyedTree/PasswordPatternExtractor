@@ -68,7 +68,7 @@ Output score
 '''
 
 cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.0001)
-#TODO: Deal with the edge case in your evernotes.
+
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
@@ -204,6 +204,10 @@ def main(filePath):
             totalScore = p1_score + p2_score + p3_score + p4_score
             tuple_to_add = (totalScore, p1_score, p2_score, p3_score, p4_score, line)
             totalList.append(tuple_to_add)
+            if(iter_count %243423 == 0):
+                f = open('scores.pkl', 'wb+')  # Pickle file is newly created where foo1.py is         # dump data to f
+                pickle.dump(totalList, f)
+                f.close()
     #sorts on the first value, which in this case is the total score
     totalList = sorted(totalList, key=lambda x: x[0], reverse=True)
     f = open('scores.pkl', 'wb')   # Pickle file is newly created where foo1.py is         # dump data to f

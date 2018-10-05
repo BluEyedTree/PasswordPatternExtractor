@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import pickle
 import math
+import numpy
 
 '''
 The first step is to read through the mongoDB, and dump all the values into a list. This list is then pickled.
@@ -32,21 +33,20 @@ def createValueListpickle():
 '''
 Using the pickled value list determine the value at which to cutoff.
 The cutoff is determined as follows.
-The count of items from the max value to the first value 1 is determined. 
-Then the index for the top X% of this array is returned.
-The top 20% percentile cuts off at 8
+The length of the substring list (containing all substrings) list is determined.
+THe cutoff is after 20% of the data (based on the length of the array]
+So if you had the array:
+[10,9,8,7,6,5,4,3,2,1]
+The cutoff would be 9. Thus values would need to be greater 9 to meet it
 '''
 def determinePercentageCutoff(percentile_cutoff):
     f = open('valueList.pkl', 'rb')   # 'r' for reading; can be omitted
     value_list = pickle.load(f)         # load file content as mydict
     f.close()
-    count = 0
-    for item in value_list:
-        if item>1:
-            count +=1
 
+    cutOff = value_list[round(len(value_list) * percentile_cutoff)]
 
     return(value_list[math.floor(count*percentile_cutoff)])
 
 
-#print(determinePercentageCutoff(0.2))
+print(determinePercentageCutoff(0.2))
