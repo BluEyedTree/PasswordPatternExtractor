@@ -46,7 +46,7 @@ def determinePercentageCutoff(percentile_cutoff):
 
     cutOff = value_list[round(len(value_list) * percentile_cutoff)]
 
-    return(value_list[math.floor(count*percentile_cutoff)])
+    return cutOff
 
 
-print(determinePercentageCutoff(0.2))
+#print(determinePercentageCutoff(0.2))
