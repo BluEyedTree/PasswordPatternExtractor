@@ -52,6 +52,23 @@ def password_score_based_on_length(password):
 
 
 '''
+If the substring does not exist then a 0 is returned
+If the DB value is greater than the cutoff then a 1 is returned
+If the substring exists then its hitCount/cutOff is returned
+'''
+cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.1)
+def normalizeSubstringFrequency(password):
+    db = client[SUBSTRING_DATABASE]
+    collection = db[SUBSTRING_COLECTION]
+    if(collection.find_one({"_id":password}) is None):
+        return 0
+
+    if(collection.find_one({"_id":password})['value']>cutOff):
+        return 1
+    else:
+        return collection.find_one({"_id":password})['value']/cutOff
+
+'''
 parameter two P2: not covered by any common substring
 
 example: iloveyou123#, only # is not common, so uncovered length = 1
@@ -67,8 +84,8 @@ Input Password
 Output score
 '''
 
-cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.0001)
 
+#TODO: DON'T EVEN INCLUDE SUBSTRINGS THAT HAVE ONLY 1 OCCURANCE. DON'T COUNT THEM AS AN OCCURANCE
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
@@ -214,10 +231,13 @@ def main(filePath):
     pickle.dump(totalList,f)
     f.close()
 
-main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt")
+#main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt")
 
-f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
-value_list = pickle.load(f)  # load file content as mydict
+#f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
+#value_list = pickle.load(f)  # load file content as mydict
+
+
+
 #print(value_list)
 '''
 
@@ -234,3 +254,5 @@ print(regex_rulecoverage("abc123"))
 #print((datetime.now() - startTime).total_seconds())
 
 '''
+
+print(normalizeSubstringFrequency("ca"))

@@ -38,12 +38,12 @@ def createValueListpickle():
 '''
 Using the pickled value list determine the value at which to cutoff.
 The cutoff is determined as follows.
-The length of the substring list (containing all substrings) list is determined.
-THe cutoff is after 20% of the data (based on the length of the array]
-So if you had the array:
-[10,9,8,7,6,5,4,3,2,1]
-The cutoff would be 9. Thus values would need to be greater 9 to meet it
+You find the index of the last two in the array.
+Then 20% of the length of this is used.
+~65% of the data is substrings that occur once. 
+This method returns the value at the 20% percentile index
 '''
+
 def determinePercentageCutoff(percentile_cutoff):
     #Create the pickle file if it doesn't exist
     if (not os.path.isfile('valueList.pkl')):
@@ -53,10 +53,12 @@ def determinePercentageCutoff(percentile_cutoff):
     value_list = pickle.load(f)  # load file content as mydict
     f.close()
 
+    count = 0
+    for i in value_list:
+        count +=1
+        if i==1:
+            first2Value = count-2
+            return value_list[round(first2Value*percentile_cutoff)]
 
-    cutOff = value_list[round(len(value_list) * percentile_cutoff)]
-
-    return cutOff
 
 
-#print(determinePercentageCutoff(0.2))
