@@ -2,7 +2,7 @@ import Password_Sorting.Password_Scoring
 import Password_Sorting.Utils as Utils
 
 from pymongo import MongoClient
-
+import math
 
 def test_normalizeSubstringFrequency():
     SUBSTRING_DATABASE = "test"
@@ -71,10 +71,11 @@ def test_common_substring_coverage1():
         score = 1.5 ** ((1 - (numerator / denominator)) * 10)
         return score
 
-    assert common_substring_coverage1("Madeb123") == 1 and round(common_substring_coverage1("abc1234")) == 10
+    assert common_substring_coverage1("Madeb123") == 1
+    assert round(common_substring_coverage1("abc1234")) == 10
 
 
-def test_common_substring_coverage1():
+def test_common_association_coverage1():
     client = MongoClient('localhost', 27017)
     db = client["test"]
     collection = db["association_rules_test"]
@@ -114,14 +115,15 @@ def test_common_substring_coverage1():
 
         uncovered_by_association_rules = len(password_to_modify)
 
-        print(numerator)
-        print(denominator)
 
         denominator += uncovered_by_association_rules
 
+
+
         return 1.4 ** ((1 - (numerator / denominator)) * 10)
 
-    assert round(association_rule_coverage("appman")) == 16
+    assert math.floor(association_rule_coverage("appman")) == 15
+    assert math.floor(association_rule_coverage("ap!pman")) == 16
 
 
 
