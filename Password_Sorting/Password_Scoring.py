@@ -2,8 +2,8 @@
 import pymongo
 from pymongo import MongoClient
 import re
-import extract_top_x_percent_substring
-import Utils
+import Password_Sorting.extract_top_x_percent_substring as extract_top_x_percent_substring
+import Password_Sorting.Utils as Utils
 from datetime import datetime
 import pickle
 
@@ -69,15 +69,20 @@ def normalizeSubstringFrequency(password):
         return collection.find_one({"_id":password})['value']/cutOff
 
 '''
-parameter two P2: not covered by any common substring
+Parameter 2 Substring coverage
 
-example: iloveyou123#, only # is not common, so uncovered length = 1
-p2 = 1.5^(1/12 * 5)
+Fi = Normalized frequency (number of times that substring was seen in the data, substring “hits”) of a substring
+If the frequency is in the top 10%:
+Fi = 1
+If frequency in bottom 90%:
+Fi =      Substring_Fi / Frequency that occurs directly at 80%
 
-In general, UL/L
-P2 = 1.5^(UL/L * 10)
+_L = Length of password uncovered. The number of chars in the password that are not seen in the substring DB.
+Li = Length of the substring
 
-* UL: uncovered length
+S =  sum(Li * Fi)/ (sum(Li) +_L)
+
+Score = 1.5^10(1-S)
 
 Justification: This gives preference to passwords with uncommon substrings, for example iloveyou# is a bad password because iloveyou is very common substring. xyzwtxax is a better password than iloveyou, because of dictionary attacks.
 Input Password
@@ -85,45 +90,56 @@ Output score
 '''
 
 
-#TODO: DON'T EVEN INCLUDE SUBSTRINGS THAT HAVE ONLY 1 OCCURANCE. DON'T COUNT THEM AS AN OCCURANCE
+
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
-
     password_length = len(password)
     substringList = []
 
     substrings = Utils.subStringFinder(password)
+    # Check if substring is in the DB, and has a frequency greater than 1
+
     for obj in substrings:
-        if(collection.find_one({"_id":obj}) is not None
-                and collection.find_one({"_id":obj})["value"] >= cutOff):
+        if (collection.find_one({"_id": obj}) is not None
+                and collection.find_one({"_id": obj})["value"] > 1):
             substringList.append(obj)
 
+    # Find out how much of the password is covered by substrings
     for substring in substringList:
         chars = list(substring)
         for char in chars:
             password = password.replace(char, "")
 
-
     uncovered = len(password)
-    score = 1.5**((uncovered/password_length) * 10)
+
+    numerator = 0.0  # sum(Li * Fi)
+    denominator = 0.0  # sum(Li) +_L
+
+    for substring in substringList:
+        normalized_frequency = normalizeSubstringFrequency(substring)
+        substring_length = len(substring)
+        numerator += substring_length * normalized_frequency
+
+        denominator += substring_length
+
+    denominator = denominator + uncovered
+
+
+    score = 1.5 ** ((1 - (numerator / denominator)) * 10)
     return score
 
-
-
-
 '''
-parameter three P3: length of uncovered by association rules (UAL)
-In general, UL/L
-P3 = 1.4^(UAL/L * 10)
+Parameter 3: Association rules coverage
 
+Li = Length of the total association rule. This includes text before and after the arrow
+Ci = The confidence value of the association rule
+_L=   Length of password uncovered. The number of chars in the password that are not seen in the association rules DB
 
-lovehate
-iloveyou
+A = sum(Li*Ci) / (sum(Li) +_L)
 
-*This iterates through all mined association rules.
-
-Justification: These two passwords have 0 uncommon substrings, however, love567 is a better password than iloveyou, because ilove and you cooccur in many passwords.
+Score: 
+1.4^10(1-A)
 '''
 #The code is outside the method to prevent uneccesary repitition
 db = client[ASSOCIATION_RULES_DATABASE]
@@ -131,31 +147,43 @@ collection = db[ASSOCIATION_RULES_COLLECTION]
 associations_from_database = []
 for obj in collection.find():
     association_rule = obj["_id"]
+    confidence = obj["value"]
     first_word = association_rule.split("->")[0]
     second_word = association_rule.split("->")[1]
-    associations_from_database.append((first_word,second_word))
+    associations_from_database.append((first_word,second_word,confidence))
 
 def association_rule_coverage(password):
 
     association_rule_list = []
-    for firstWord, secondWord  in associations_from_database:
+    for firstWord, secondWord, confidenceVal in associations_from_database:
         if firstWord in password and secondWord in password \
                 and password.find(firstWord) < password.find(secondWord):
-            association_rule_list.append((firstWord,secondWord))
+            association_rule_list.append((firstWord, secondWord, confidenceVal))
 
     #Both association rules need to be in the password. And if the association rule
     password_to_modify = password
 
 
-    for first_word, second_word in association_rule_list:
+    for first_word, second_word, in association_rule_list:
         #We want to remove all the chars from both the 1st and 2nd word
         chars_to_remove = list(first_word) + list(second_word)
         for char in chars_to_remove:
             password_to_modify = password_to_modify.replace(char, "")
             password_to_modify = password_to_modify.replace(char, "")
 
+    numerator = 0
+    denominator = 0
+
+    for Fword, Sword, conf in association_rule_list:
+        association_rule_length = len(Fword) + len(Sword)
+        numerator += association_rule_length * conf
+        denominator += association_rule_length
+
     uncovered_by_association_rules = len(password_to_modify)
-    return(1.4**(uncovered_by_association_rules/len(password) * 10))
+
+    denominator += uncovered_by_association_rules
+
+    return 1.4**((1-(numerator/denominator))*10)
 
 
 '''
@@ -255,4 +283,5 @@ print(regex_rulecoverage("abc123"))
 
 '''
 
-print(normalizeSubstringFrequency("ca"))
+#print(normalizeSubstringFrequency("c12"))
+#print(common_substring_coverage("BlackJack12"))
