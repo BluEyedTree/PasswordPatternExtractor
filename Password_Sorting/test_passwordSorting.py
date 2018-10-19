@@ -1,6 +1,7 @@
 import Password_Sorting.Password_Scoring
 import Password_Sorting.extract_top_x_percent_substring
 import Password_Sorting.Utils as Utils
+import re
 
 from pymongo import MongoClient
 import math
@@ -75,7 +76,7 @@ def test_common_substring_coverage1():
     assert common_substring_coverage1("Madeb123") == 1
     assert round(common_substring_coverage1("abc1234")) == 10
 
-
+#TODO:Write tests that use that actual association rule DB
 def test_common_association_coverage1():
     client = MongoClient('localhost', 27017)
     db = client["test"]
@@ -111,7 +112,7 @@ def test_common_association_coverage1():
 
         for Fword, Sword, conf in association_rule_list:
             association_rule_length = len(Fword) + len(Sword)
-            numerator += association_rule_length * conf
+            numerator += association_rule_length * float(conf)
             denominator += association_rule_length
 
         uncovered_by_association_rules = len(password_to_modify)
@@ -156,7 +157,25 @@ def test_determinePercentageCutoff_For_Regex():
     assert normalizeRegexFrequency("^[A-Za-z0-9]{2}$") < 0.001
 
 
+def test_regex_rulecoverage():
+    REGEX_DATABASE = "Research_Initial_Test"
+    REGEX_COLLECTION = "regex"
+    client = MongoClient('localhost', 27017)
+    db = client[REGEX_DATABASE]
+    collection = db[REGEX_COLLECTION]
+    regex_list = []
+    for regex in collection.find():
+        regex_list.append(regex)
 
-#TODO: Add regex normalization testing
-#TODO: Add Regex scoring test
+    def regex_rulecoverage(password):
+        for regeX in regex_list:
+            if (re.match(regeX["_id"], password) is not None):
+                return 1.3 ** (10 * (1 - Password_Sorting.Password_Scoring.normalizeRegexFrequency(regeX["_id"])))
+
+        return 1.3 ** (10 * (1 - 0))  # The case when the regex is not in the DB
+    assert regex_rulecoverage("abcdef") == 1
+    assert regex_rulecoverage("dasdasdasdasdasdasdas245#$") > 13
+
+
+#TODO: Add one more test to test_regex-_rulecoverage(). Test a non 1 case.
 

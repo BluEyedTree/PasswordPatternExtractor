@@ -47,7 +47,7 @@ def password_score_based_on_length(password):
         normalization = 1.0
     else:
         normalization = float(len(password))/float(10.0)
-    return 2**(10*normalization)
+    return 1.6**(10*normalization)
 
 
 
@@ -192,7 +192,7 @@ def association_rule_coverage(password):
 
     for Fword, Sword, conf in association_rule_list:
         association_rule_length = len(Fword) + len(Sword)
-        numerator += association_rule_length * conf
+        numerator += association_rule_length * float(conf)
         denominator += association_rule_length
 
     uncovered_by_association_rules = len(password_to_modify)
@@ -226,17 +226,12 @@ for regex in collection.find():
 
 
 def regex_rulecoverage(password):
-    db = client[REGEX_DATABASE]
-    collection = db[REGEX_COLLECTION]
-
-    commonFlag = 0
     for regeX in regex_list:
         if(re.match(regeX["_id"], password) is not None):
+            return 1.3**(10*(1-normalizeRegexFrequency(regeX["_id"])))
 
 
-            return 1.3**(10*(1-normalizeRegexFrequency(regeX)))
-
-
+    return 1.3 ** (10 * (1 - 0)) #The case when the regex is not in the DB
 
 '''
 THe main function runs all the rule coverage on an input list.
@@ -260,6 +255,14 @@ def main(filePath):
             p2_score = common_substring_coverage(line)
             p3_score = association_rule_coverage(line)
             p4_score = regex_rulecoverage(line)
+            '''
+            print(line)
+            print(p1_score)
+            print(p2_score)
+            print(p3_score)
+            print(p4_score)
+            print("+-------+")
+            '''
             totalScore = p1_score + p2_score + p3_score + p4_score
             tuple_to_add = (totalScore, p1_score, p2_score, p3_score, p4_score, line)
             totalList.append(tuple_to_add)
