@@ -75,7 +75,7 @@ If it corresponds to one of the regex's then a score is returned.
 If its in the top 20% percent (as defined in the cutoff) then a 1 is returned
 If its in the bottom 80% then regex  hitCount/cutOff is returned
 '''
-cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff(0.2)
+cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
 def normalizeRegexFrequency(regex):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
@@ -269,9 +269,11 @@ def main(filePath):
                 f.close()
     #sorts on the first value, which in this case is the total score
     totalList = sorted(totalList, key=lambda x: x[0], reverse=True)
-    f = open('scores.pkl', 'wb')   # Pickle file is newly created where foo1.py is         # dump data to f
+    f = open('scores_WithUpdatedScores.pkl', 'wb')   # Pickle file is newly created where foo1.py is         # dump data to f
     pickle.dump(totalList,f)
     f.close()
+
+
 
 
 

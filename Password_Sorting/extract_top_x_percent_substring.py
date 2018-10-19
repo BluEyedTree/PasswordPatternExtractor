@@ -73,13 +73,13 @@ def determinePercentageCutoff_For_Regex(percentile_cutoff):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
     for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
-        #print(obj)
+        print(obj)
         regex_list.append(obj)
     a = regex_list[math.floor(len(regex_list)*percentile_cutoff)]
-    return regex_list[math.floor(len(regex_list)*percentile_cutoff)]
+    return regex_list[math.floor(len(regex_list)*percentile_cutoff)]['value']
 
 
-print()
+
 print(determinePercentageCutoff_For_Regex(0.2))
 
 

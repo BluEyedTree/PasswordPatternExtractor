@@ -1,4 +1,5 @@
 import Password_Sorting.Password_Scoring
+import Password_Sorting.extract_top_x_percent_substring
 import Password_Sorting.Utils as Utils
 
 from pymongo import MongoClient
@@ -119,6 +120,10 @@ def test_common_association_coverage1():
         denominator += uncovered_by_association_rules
 
 
+        print(password)
+        print("SCORE")
+        print(1.4 ** ((1 - (numerator / denominator)) * 10))
+
 
         return 1.4 ** ((1 - (numerator / denominator)) * 10)
 
@@ -127,4 +132,31 @@ def test_common_association_coverage1():
 
 
 
+
+def test_determinePercentageCutoff_For_Regex():
+    cutOff_regex = Password_Sorting.extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
+    client = MongoClient('localhost', 27017)
+    REGEX_DATABASE = "Research_Initial_Test"
+    REGEX_COLLECTION = "regex"
+    def normalizeRegexFrequency(regex):
+        db = client[REGEX_DATABASE]
+        collection = db[REGEX_COLLECTION]
+        print("!!!!!!!")
+        print(cutOff_regex)
+        print()
+        if (collection.find_one({"_id": regex}) is None):
+            return 0
+
+        if (collection.find_one({"_id": regex})['value'] > cutOff_regex):
+            return 1
+        else:
+            return collection.find_one({"_id": regex})['value'] / cutOff_regex
+
+    assert normalizeRegexFrequency("^[a-z]{6}$") == 1
+    assert normalizeRegexFrequency("^[A-Za-z0-9]{2}$") < 0.001
+
+
+
+#TODO: Add regex normalization testing
+#TODO: Add Regex scoring test
 
