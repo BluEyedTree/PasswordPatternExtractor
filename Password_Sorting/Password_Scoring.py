@@ -68,6 +68,25 @@ def normalizeSubstringFrequency(password):
     else:
         return collection.find_one({"_id":password})['value']/cutOff
 
+
+'''
+Takes the input password and sees if it corresponds to one of the Regex's
+If it corresponds to one of the regex's then a score is returned.
+If its in the top 20% percent (as defined in the cutoff) then a 1 is returned
+If its in the bottom 80% then regex  hitCount/cutOff is returned
+'''
+cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff(0.2)
+def normalizeRegexFrequency(regex):
+    db = client[REGEX_DATABASE]
+    collection = db[REGEX_COLLECTION]
+    if(collection.find_one({"_id":regex}) is None):
+        return 0
+
+    if(collection.find_one({"_id":regex})['value']>cutOff_regex):
+        return 1
+    else:
+        return collection.find_one({"_id":regex})['value'] / cutOff_regex
+
 '''
 Parameter 2 Substring coverage
 
@@ -88,8 +107,6 @@ Justification: This gives preference to passwords with uncommon substrings, for 
 Input Password
 Output score
 '''
-
-
 
 def common_substring_coverage(password):
     db = client[SUBSTRING_DATABASE]
@@ -160,12 +177,11 @@ def association_rule_coverage(password):
                 and password.find(firstWord) < password.find(secondWord):
             association_rule_list.append((firstWord, secondWord, confidenceVal))
 
-    #Both association rules need to be in the password. And if the association rule
+    # Both association rules need to be in the password. And if the association rule
     password_to_modify = password
 
-
-    for first_word, second_word, in association_rule_list:
-        #We want to remove all the chars from both the 1st and 2nd word
+    for first_word, second_word, con in association_rule_list:
+        # We want to remove all the chars from both the 1st and 2nd word
         chars_to_remove = list(first_word) + list(second_word)
         for char in chars_to_remove:
             password_to_modify = password_to_modify.replace(char, "")
@@ -181,27 +197,24 @@ def association_rule_coverage(password):
 
     uncovered_by_association_rules = len(password_to_modify)
 
+
     denominator += uncovered_by_association_rules
 
-    return 1.4**((1-(numerator/denominator))*10)
+
+
+
+    return 1.4 ** ((1 - (numerator / denominator)) * 10)
 
 
 '''
-parameter four P4: normalized aggregate commonality of password pattern
-love12 matches l4d2 and l*d*. This is regex!
+Parameter 4: Regex Coverage
+Fi - Normalized Frequency(The number of times this regex was hit)
+If Frequency of Regex in the top 20%:
+Fi = 1
+If Frequency In the bottom 80%:
+Fi = Regex_Fi / Frequency that occurs directly at 80%
 
-assumption: all small letter is more frequent than small letters followed by numbers > numbers followed by small letters.
-
-CS: commonness score of a pattern [0, 1]
-0 --> not common at all
-1 --> very common.
-
-P4 = 1.3^(10*(1 - CS))
-
-all digit passwords are very common.
-justification: this puts emphasis on diversity of password structure, rather than just having symbols or digits in the password. If a password has a pattern that is very uncommon, it must have a highest score.
-
-We argue that P1 more important than P2, more important than P3, more important than P4.
+Score = 1.3^10(1-Fi)
 '''
 
 #Outside the method to allow regex's from db to be built once, instead of for every password
@@ -211,6 +224,7 @@ regex_list = []
 for regex in collection.find():
     regex_list.append(regex)
 
+
 def regex_rulecoverage(password):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
@@ -218,9 +232,9 @@ def regex_rulecoverage(password):
     commonFlag = 0
     for regeX in regex_list:
         if(re.match(regeX["_id"], password) is not None):
-            commonFlag = 1
 
-    return 1.3**(10*(1-commonFlag))
+
+            return 1.3**(10*(1-normalizeRegexFrequency(regeX)))
 
 
 
@@ -258,6 +272,8 @@ def main(filePath):
     f = open('scores.pkl', 'wb')   # Pickle file is newly created where foo1.py is         # dump data to f
     pickle.dump(totalList,f)
     f.close()
+
+
 
 #main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt")
 

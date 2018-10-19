@@ -3,7 +3,8 @@ import pickle
 import math
 import numpy
 import os
-
+from pymongo import MongoClient
+import pymongo
 
 #TODO: Create pickling file for the associations DB. Then create a cutoff function
 
@@ -59,6 +60,28 @@ def determinePercentageCutoff(percentile_cutoff):
         if i==1:
             first2Value = count-2
             return value_list[round(first2Value*percentile_cutoff)]
+
+
+
+
+def determinePercentageCutoff_For_Regex(percentile_cutoff):
+    REGEX_DATABASE = "Research_Initial_Test"
+    REGEX_COLLECTION = "regex"
+    client = MongoClient('localhost', 27017)
+
+    regex_list = []
+    db = client[REGEX_DATABASE]
+    collection = db[REGEX_COLLECTION]
+    for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
+        #print(obj)
+        regex_list.append(obj)
+    a = regex_list[math.floor(len(regex_list)*percentile_cutoff)]
+    return regex_list[math.floor(len(regex_list)*percentile_cutoff)]
+
+
+print()
+print(determinePercentageCutoff_For_Regex(0.2))
+
 
 
 
