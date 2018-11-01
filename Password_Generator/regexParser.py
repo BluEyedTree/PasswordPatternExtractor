@@ -1,4 +1,4 @@
-
+import re
 
 
 testRegex = "[a-z]{3}[0-9]{3}[a-z]{4}[0-9]{3}[a-z]{3}"
@@ -12,12 +12,19 @@ regexlList = regexlList[:-1]
 print(regexlList)
 
 
+
+
+formattedRegex = ""
 for i in range(0,len(regexlList)-1,2):
     builtRegexToAdd = regexlList[i] + "{1}"
-    print(builtRegexToAdd*int(regexlList[i+1]))
+    formattedRegex += builtRegexToAdd*int(regexlList[i+1])
+print(formattedRegex)
 
 
 
+
+
+print(formattedRegex.split("{1}"))
 
 '''
 class RegexParser():
