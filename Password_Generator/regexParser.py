@@ -18,10 +18,18 @@ formattedRegex = ""
 for i in range(0,len(regexlList)-1,2):
     builtRegexToAdd = regexlList[i] + "{1}"
     formattedRegex += builtRegexToAdd*int(regexlList[i+1])
-print(formattedRegex)
 
+breakUpNumber = 0
+count = 0
+toAdd = []
+#TODO: Write code to lump on the regex into char's of 3, and return that
+'''
+for i in formattedRegex.split("{1}"): #Get the items without the number
 
+    if(breakUpNumber == breakUpNumber)
 
+    count += 1
+'''
 
 
 print(formattedRegex.split("{1}"))
