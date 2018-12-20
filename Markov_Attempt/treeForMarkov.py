@@ -48,19 +48,15 @@ class Node(object):
         self.value = value
 
 
-    def add_child(self, obj):
-        self.children.insert(obj)
+    def add_child(self, priority, obj):
+        self.children.insert(priority,obj)
         obj.parent = self
 
     def popHighestValue(self):
-        self.children.delete()
+        return self.children.delete()
 
 
-tom = PriorityQueue()
-tom.insert(1,"abc")
-tom.insert(4, "dcf")
-tom.insert(2, "abc")
-
-print(tom.delete())
-print(tom.delete())
-print(tom.delete())
+tom = Node("''")
+tom.add_child(0.5, Node("a"))
+tom.add_child(0.7, Node("b"))
+print(tom.popHighestValue())
