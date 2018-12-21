@@ -1,35 +1,36 @@
 # A simple implementation of Priority Queue
 # using Queue.
 class PriorityQueue(object):
-	def __init__(self):
-		self.queue = []
+    def __init__(self):
+        self.queue = []
 
-	def __str__(self):
-		return ' '.join([str(i) for i in self.queue])
+    def __str__(self):
+        return ' '.join([str(i) for i in self.queue])
 
-	# for checking if the queue is empty
-	def isEmpty(self):
-		return len(self.queue) == []
+    # for checking if the queue is empty
+    def isEmpty(self):
+        return len(self.queue) == []
 
-	# for inserting an element in the queue
-	def insert(self, priority, data):
-		self.queue.append((priority,data))
+    # for inserting an element in the queue
+    def insert(self, data):
+        self.queue.append(data)
 
-	# for popping an element based on Priority
-	def delete(self):
-		try:
-			max = 0
-			for i in range(len(self.queue)):
-				if self.queue[i] > self.queue[max]:
-					max = i
-			item = self.queue[max]
-			del self.queue[max]
-			return item
-		except IndexError:
-			print()
-			exit()
+    def getAll(self):
+        return self.queue
 
-
+    # for popping an element based on Priority
+    def delete(self):
+        try:
+            max = 0
+            for i in range(len(self.queue)):
+                if self.queue[i].priority > self.queue[max].priority:
+                    max = i
+            item = self.queue[max]
+            del self.queue[max]
+            return item
+        except IndexError:
+            print()
+            exit()
 
 
 '''
@@ -42,21 +43,47 @@ class Tree(object):
 '''
 
 class Node(object):
-    def __init__(self, value):
+    def __init__(self, value, priority):
         self.parent = None
         self.children = PriorityQueue()
         self.value = value
+        self.priority = priority
 
 
-    def add_child(self, priority, obj):
-        self.children.insert(priority,obj)
+    def add_child(self, obj):
+        self.children.insert(obj)
         obj.parent = self
 
     def popHighestValue(self):
         return self.children.delete()
 
+    def getChildren(self):
+        return self.children.getAll()
 
-tom = Node("''")
-tom.add_child(0.5, Node("a"))
-tom.add_child(0.7, Node("b"))
-print(tom.popHighestValue())
+#Simple example usage of the data structure
+
+tom = Node("DD",1)
+tom.add_child(Node("a",0.9))
+tom.add_child (Node("b", 0.6))
+#tom.getChildren()[0].add_child(Node("c",1))
+#print(tom.popHighestValue().value)
+
+'''
+for i in tom.getChildren():
+    print(i.value)
+
+'''
+
+
+
+
+
+def getAll(currentNode):
+    if(currentNode.getChildren != []):
+        for sibling in currentNode.getChildren():
+            print(sibling.value)
+            return (getAll(sibling))
+    else:
+        return
+
+getAll(tom)
