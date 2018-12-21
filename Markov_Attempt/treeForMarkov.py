@@ -63,27 +63,22 @@ class Node(object):
 #Simple example usage of the data structure
 
 tom = Node("DD",1)
-tom.add_child(Node("a",0.9))
+tom.add_child(Node("a",0.3))
 tom.add_child (Node("b", 0.6))
-#tom.getChildren()[0].add_child(Node("c",1))
+
+tom.getChildren()[0].add_child(Node("c",0.2))
+tom.getChildren()[1].add_child(Node("d",0.1))
 #print(tom.popHighestValue().value)
-
-'''
-for i in tom.getChildren():
-    print(i.value)
-
-'''
 
 
 
 
 
 def getAll(currentNode):
+    print(currentNode.value)
+    children_to_process = []
     if(currentNode.getChildren != []):
         for sibling in currentNode.getChildren():
-            print(sibling.value)
-            return (getAll(sibling))
-    else:
-        return
+            sibling.priority = 1
+            getAll(sibling)
 
-getAll(tom)
