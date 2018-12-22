@@ -241,7 +241,7 @@ It saves the data as a list in the following format:
 def main(filePath):
     totalList = []
     iter_count = 0
-    rockYouLength = 24342374
+    rockYouLength = 2000
 
     with open(filePath, encoding="utf-8") as infile:
         for line in infile:
@@ -280,7 +280,7 @@ def main(filePath):
 
 
 
-#main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/UTF8_Formatted.txt")
+main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/short_UTF8_List.txt")
 
 #f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
 #value_list = pickle.load(f)  # load file content as mydict
