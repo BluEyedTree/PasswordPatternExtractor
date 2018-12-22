@@ -20,23 +20,21 @@ def probabilityToChar(charbag, probabilities):
 
 config = Mock()
 config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
-m = Markov.MarkovModel(config, smoothing='none', order=2)
+m = Markov.MarkovModel(config, smoothing='none', order=3)
 m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10)])
 
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
-print(probabilityToChar(m.alphabet, answer))
-print("!!!!!!!!")
-print(answer)
+
 
 
 root_node = tree.Node("",1)
 sys.setrecursionlimit(50000)
-def markovBuilder(currentNode):
+def markovBuilder(currentNode, maxPasswordLength=10):
     config = Mock()
     config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-    if ("\n" not in currentNode.value):
+    if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
         m.predict(currentNode.value, answer)
         char_to_add = probabilityToChar(m.alphabet, answer)
         for char, probability in char_to_add:
@@ -50,3 +48,53 @@ def markovBuilder(currentNode):
 
 
 markovBuilder(root_node)
+
+'''
+Goes through the tree the markov builder made, and returns the passwords in order into a list
+'''
+passwords = []
+def getPasswords(node):
+    if(node.getChildren() != []):
+        for sibling in node.getChildren():
+            getPasswords(sibling)
+    else:
+        passwords.append(node.value)
+
+
+'''
+
+print("test")
+for i in root_node.getChildren():
+    print(i.value,i.priority)
+
+
+print("test")
+
+getPasswords(root_node)
+print("!!!")
+print(passwords)
+print("!!!!!")
+for i in passwords:
+    print(i)
+    
+'''
+'''
+print(root_node.getChildren())
+for i in root_node.getChildren():
+    print(i.value)
+
+'''
+'''
+current_node = root_node
+while current_node.getChildren() != []:
+    print(current_node.getChildren())
+'''
+'''
+
+passwordList = []
+def getPasswords(currentNode):
+    if(currentNode.getChildren != []):
+        for sibling in currentNode.getChildren():
+            getPasswords(sibling)
+'''
+

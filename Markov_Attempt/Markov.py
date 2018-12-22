@@ -1,4 +1,4 @@
-# author: William Melicher
+
 import argparse
 import collections
 import json
@@ -88,6 +88,8 @@ class MarkovModel(object):
 
     def __init__(self, config, smoothing='none', order=2):
         self.alphabet = sorted(config.char_bag)
+        print("Im the alphabet")
+        print(self.alphabet)
         self.chars_to_index = dict([
             (c, i) for i, c in enumerate(self.alphabet)])
         self.smoothing = smoothing
@@ -294,11 +296,11 @@ This is my added code where I will try experimenting with
 '''
 
 
-config = Mock()
-config.char_bag = pg.PASSWORD_END + 'aehnpst'
-m = MarkovModel(config, smoothing='none', order=2)
-m.train([('pass', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1)])
-answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
-m.predict('pa', answer)
-print(answer)
+'''
+A function that maps from the answer array to an actual character
+'''
+#def answerToChar(charbag, answer):
+
+
+
 
