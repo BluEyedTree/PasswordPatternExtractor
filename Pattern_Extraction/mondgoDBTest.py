@@ -8,8 +8,12 @@ client = MongoClient('localhost', 27017)
 #collection = db["Association_Rules_half_data_0.1_Confidence"]
 
 
-db = client["test"]
-collection = db["test"]
+ASSOCIATION_RULES_DATABASE = "Substring_Research"
+ASSOCIATION_RULES_COLLECTION = "substring_Length3to8"
+
+db = client[ASSOCIATION_RULES_DATABASE]
+collection = db[ASSOCIATION_RULES_COLLECTION]
+
 '''
 #Make new item
 collection.save({'_id' : "test", 'value' : 2})
@@ -36,7 +40,7 @@ client.close()
 '''
 #This line is what does the updating. This single line will place new values in if they don't exist, and update ones that do
 #UpdateOne({'_id': "bam"}, {'$inc': {'value': 1}}, upsert=True)
-
+'''
 
 
 
@@ -54,4 +58,13 @@ for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
 print(meh[1:100])
 
 print(count)
-
+a = 
+'''
+a = ['abc', 'bc1', 'c12', '123', 'abc1', 'bc12', 'c123', 'abc12', 'bc123', 'abc123']
+for i in a:
+    print(collection.find_one({"_id":i}))
+print(collection["abc"])
+print(collection.find_one({"_id":"abc"})["value"])
+print(collection.find_one({"_id":"abc"}))
+#print(collection.find_one({"_id":"aassdadbc"}))
+#print(collection.find_one({"_id":"aassdadbc"}) is not None)

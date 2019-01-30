@@ -32,6 +32,18 @@ class PriorityQueue(object):
             print()
             exit()
 
+    def getHighest_Value(self):
+        try:
+            max = 0
+            for i in range(len(self.queue)):
+                if self.queue[i].priority > self.queue[max].priority:
+                    max = i
+            item = self.queue[max]
+            return item
+        except IndexError:
+            print()
+            exit()
+
 
 '''
 class Tree(object):
@@ -45,20 +57,47 @@ class Tree(object):
 class Node(object):
     def __init__(self, value, priority):
         self.parent = None
-        self.children = PriorityQueue()
+        self.children = []
         self.value = value
         self.priority = priority
 
+    def __lt__(self,other):
+        return self.priority<other.priority
+
+    def __le__(self,other):
+        return self.priority<=other.priority
+
+    def __gt__(self,other):
+        return self.priority > other.priority
+
+    def __ge__(self,other):
+        return self.priority>=other.priority
+
+    def __eq__(self,other):
+        return self.priority == other.priority
+
+    def __ne__(self,other):
+        return not(self.__eq__(self,other))
 
     def add_child(self, obj):
-        self.children.insert(obj)
+        #self.children.insert(obj)
+        self.children.append(obj)
         obj.parent = self
 
+    def getChildren(self):
+        self.children.sort(reverse=True)
+        #return self.children.getAll()
+        return self.children
+
+    '''
     def popHighestValue(self):
         return self.children.delete()
 
-    def getChildren(self):
-        return self.children.getAll()
+    def getHighestValue(self):
+        return self.children.getHighest_Value()
+
+    '''
+
 
 #Simple example usage of the data structure
 
@@ -66,14 +105,33 @@ tom = Node("DD",1)
 tom.add_child(Node("a",0.3))
 tom.add_child (Node("b", 0.6))
 
-tom.getChildren()[0].add_child(Node("c",0.2))
-tom.getChildren()[1].add_child(Node("d",0.1))
+tom.getChildren()[0].add_child(Node("c",0.3))
+tom.getChildren()[1].add_child(Node("d",0.5))
+print("testg")
+print()
+print("test")
 #print(tom.popHighestValue().value)
+#print(tom.getHighestValue().value)
+
+bigger_tom = Node("A",0.9)
+smaller_tom = Node("B",0.7)
+medium_tom = Node("C",0.8)
+tom_list = [bigger_tom,smaller_tom,medium_tom]
+
+for i in tom_list:
+    print(i.priority)
+
+tom_list.sort(reverse=True)
+print("!!!!")
+for i in tom_list:
+    print(i.priority)
+
+print(tom_list)
+
+print(bigger_tom>smaller_tom)
 
 
-
-
-
+#This gets all the children of the current
 def getAll(currentNode):
     print(currentNode.value)
     children_to_process = []
@@ -82,3 +140,14 @@ def getAll(currentNode):
             sibling.priority = 1
             getAll(sibling)
 
+passwords = []
+def getPasswords(node):
+    if(node.getChildren() != []):
+        for sibling in node.getChildren():
+            getPasswords(sibling)
+    else:
+        passwords.append(node.value)
+print("sdasdas")
+getPasswords(tom)
+
+print(passwords)

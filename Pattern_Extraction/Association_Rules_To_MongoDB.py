@@ -35,4 +35,9 @@ for obj in collection.find().sort([('value', pymongo.DESCENDING)]):
     #count +=obj["value"]
     #count += 1
     print(obj)
+xz
+for obj in collection.find():
 
+    #count +=obj["value"]
+    #count += 1
+    print(obj)

@@ -38,8 +38,11 @@ def markovBuilder(currentNode, maxPasswordLength=10):
         m.predict(currentNode.value, answer)
         char_to_add = probabilityToChar(m.alphabet, answer)
         for char, probability in char_to_add:
+
             newString = currentNode.value + char
-            new_node_to_add = tree.Node(newString,probability)
+            newProbability = probability * currentNode.priority #Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
+
+            new_node_to_add = tree.Node(newString,newProbability)
             currentNode.add_child(new_node_to_add)
 
         for child in currentNode.getChildren():
