@@ -21,20 +21,39 @@ def read_association_rules_into_memory(path__to_association_rules):
         association_rules.append((first_word,second_word,score))
 
     return association_rules
-read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+association_rules = read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+
 
 
 
 
 def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules):
+    assocation_probabilties = {}
     for char,probability in probability_vector.items():
         '''
         You need to build a new dict, instead of changing the one you're iterating over.
         Step one build the word. Current + Char_from_prob_vector
         Step 2: Then check if the word satisfys assocation rules
         Step 3: Change its probability (figure out algorithm to do this
-        
         '''
+        assocation_probabilties[char] = probability
+
+        for rule in association_rules:
+            new_word = currentPassword + char
+            if(rule[0] in new_word and rule[1] in new_word):
+                first_string_end_position = new_word.find(rule[0]) + len(rule[0])-1 #The first word in the association rules
+                second_string_start_position = new_word.find(rule[1])
+
+                if(second_string_start_position > first_string_end_position):
+                    #TODO: Write a more intelligent scoring rule for the association rules
+                    assocation_probabilties[char] = probability+ 0.1
+
+
+
+
+
+
+
 
 
 
