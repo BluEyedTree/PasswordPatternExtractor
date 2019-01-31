@@ -7,22 +7,47 @@ import numpy as np
 import Markov_Attempt.treeForMarkov as tree
 import sys
 
+
+
+def read_association_rules_into_memory(path__to_association_rules):
+    association_rules = []
+    with open(path__to_association_rules) as f:
+        lines = f.readlines()
+    for line in lines:
+        score = float(line.split(",")[1])
+        first_word = line.split("->")[0]
+        second_word = line.split("->")[1].split(",")[0]
+
+        association_rules.append((first_word,second_word,score))
+
+    return association_rules
+read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+
+
+
+
+def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules):
+    for char,probability in probability_vector:
+        pass
+
+
+
 '''
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
 def probabilityToChar(charbag, probabilities):
-    char_probs = []
+    char_probs = {}
     for i in enumerate(probabilities):
         if i[1] != 0:
-            char_probs.append((charbag[i[0]],i[1]))
+            #char_probs.append((charbag[i[0]],i[1]))
+            char_probs[charbag[i[0]]] = i[1]
     return char_probs
 
 
 config = Mock()
 config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10)])
-
+m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10),('passwords', 10)])
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -32,12 +57,13 @@ root_node = tree.Node("",1)
 sys.setrecursionlimit(50000)
 def markovBuilder(currentNode, maxPasswordLength=10):
     config = Mock()
+    #TODO: Add full character set to the char bag
     config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
     if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
         m.predict(currentNode.value, answer)
         char_to_add = probabilityToChar(m.alphabet, answer)
-        for char, probability in char_to_add:
+        for char, probability in char_to_add.items():
 
             newString = currentNode.value + char
             newProbability = probability * currentNode.priority #Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
@@ -62,42 +88,5 @@ def getPasswords(node):
             getPasswords(sibling)
     else:
         passwords.append(node.value)
-
-
-'''
-
-print("test")
-for i in root_node.getChildren():
-    print(i.value,i.priority)
-
-
-print("test")
-
 getPasswords(root_node)
-print("!!!")
 print(passwords)
-print("!!!!!")
-for i in passwords:
-    print(i)
-    
-'''
-'''
-print(root_node.getChildren())
-for i in root_node.getChildren():
-    print(i.value)
-
-'''
-'''
-current_node = root_node
-while current_node.getChildren() != []:
-    print(current_node.getChildren())
-'''
-'''
-
-passwordList = []
-def getPasswords(currentNode):
-    if(currentNode.getChildren != []):
-        for sibling in currentNode.getChildren():
-            getPasswords(sibling)
-'''
-
