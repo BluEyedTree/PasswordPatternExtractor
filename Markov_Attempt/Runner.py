@@ -25,17 +25,21 @@ association_rules = read_association_rules_into_memory("/Users/thomasbekman/Docu
 
 
 
-
-
-def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules):
-    assocation_probabilties = {}
-    for char,probability in probability_vector.items():
-        '''
+'''
+This method modifies the probabilies returned by the markov model to include information about the known assocation rules
+       
         You need to build a new dict, instead of changing the one you're iterating over.
         Step one build the word. Current + Char_from_prob_vector
         Step 2: Then check if the word satisfys assocation rules
         Step 3: Change its probability (figure out algorithm to do this
-        '''
+        
+We include a scaleValue field which defines how much to multiply the confidence value by before using it to modify the probability returned by the markov model. 
+The goal is to try different confidence values (0.1 -> 1) and use linear regression to find the best values (this same scale value will also be used with common substrings)
+
+'''
+def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules, scaleValue):
+    assocation_probabilties = {}
+    for char,probability in probability_vector.items():
         assocation_probabilties[char] = probability
 
         for rule in association_rules:
@@ -46,10 +50,12 @@ def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_a
 
                 if(second_string_start_position > first_string_end_position):
                     #TODO: Write a more intelligent scoring rule for the association rules
-                    assocation_probabilties[char] = probability+ 0.1
+                    confidence_value = rule[3]
+                    assocation_probabilties[char] = probability + (confidence_value*scaleValue)
 
 
 
+        return assocation_probabilties
 
 
 
