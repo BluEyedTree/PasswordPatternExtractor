@@ -27,8 +27,14 @@ read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/Spade
 
 
 def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules):
-    for char,probability in probability_vector:
-        pass
+    for char,probability in probability_vector.items():
+        '''
+        You need to build a new dict, instead of changing the one you're iterating over.
+        Step one build the word. Current + Char_from_prob_vector
+        Step 2: Then check if the word satisfys assocation rules
+        Step 3: Change its probability (figure out algorithm to do this
+        
+        '''
 
 
 
