@@ -6,6 +6,8 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import Markov_Attempt.treeForMarkov as tree
 import sys
+from pymongo import MongoClient
+
 
 
 
@@ -67,6 +69,36 @@ fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.2}
 add_assocation_rules_to_prob("princ",fake_prob_vector, 0.1)
 
 
+
+#Cutoff at first should be 176 or top 1% of substrings
+def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
+    substrings_list = []
+    assocation_probabilties = {}
+
+    client = MongoClient('localhost', 27017)
+    db = client['Substring_Research']  # Might have to change this back to mydb
+    collection = db["substring_Length3to8"]
+    #Based on running extract_top_x_Percentage substring it was found that the top %1 of common substrings happen over 176
+    a =  collection.find({"value":{"$gt": cutoff}}) #Returns all items where the value is greater than 76
+
+    for item in a:
+        substrings_list.append(item)
+
+    for char,probability in probability_vector.items():
+        assocation_probabilties[char] = probability
+
+        for substring in substrings_list:
+            new_word = currentPassword + char
+            if(substring["_id"] in new_word):
+                #TODO: Write a more intelligent scoring rule for the addition of the substring
+                assocation_probabilties[char] = assocation_probabilties[char] + (len(substring["_id"]) *scaleValue)
+
+
+    return assocation_probabilties
+
+    #substring_list is a list of dictionaries. Where _id is string, and value is the hit count
+
+add_common_substring_to_prob("a","b","c","d")
 '''
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
