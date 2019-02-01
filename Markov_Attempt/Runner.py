@@ -36,31 +36,35 @@ This method modifies the probabilies returned by the markov model to include inf
 We include a scaleValue field which defines how much to multiply the confidence value by before using it to modify the probability returned by the markov model. 
 The goal is to try different confidence values (0.1 -> 1) and use linear regression to find the best values (this same scale value will also be used with common substrings)
 
+This also adds up all the confidence scores*scalar seen in the file. 
+Is this the best approach?
 '''
-def add_assocation_rules_to_prob(currentPassword, probability_vector, path__to_association_rules, scaleValue):
+def add_assocation_rules_to_prob(currentPassword, probability_vector, scaleValue):
     assocation_probabilties = {}
     for char,probability in probability_vector.items():
         assocation_probabilties[char] = probability
 
         for rule in association_rules:
             new_word = currentPassword + char
+            #If you want to make this more stringent, then you should add the following to the if block:  and rule[1]  not in currentPassword
+            #This would only increase the probability when the association rule is created with the addition of the letter. Instead of now where the probabilties are increased for every letter added after the creation of an association rule.
             if(rule[0] in new_word and rule[1] in new_word):
                 first_string_end_position = new_word.find(rule[0]) + len(rule[0])-1 #The first word in the association rules
                 second_string_start_position = new_word.find(rule[1])
 
                 if(second_string_start_position > first_string_end_position):
                     #TODO: Write a more intelligent scoring rule for the association rules
-                    confidence_value = rule[3]
-                    assocation_probabilties[char] = probability + (confidence_value*scaleValue)
+                    confidence_value = rule[2]
+                    assocation_probabilties[char] = assocation_probabilties[char] + (confidence_value*scaleValue)
 
 
 
-        return assocation_probabilties
+    return assocation_probabilties
 
 
 
-
-
+fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.2}
+add_assocation_rules_to_prob("princ",fake_prob_vector, 0.1)
 
 
 '''
