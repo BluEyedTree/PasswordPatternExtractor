@@ -7,7 +7,8 @@ import numpy as np
 import Markov_Attempt.treeForMarkov as tree
 import sys
 from pymongo import MongoClient
-
+import time
+import Password_Sorting.Password_Scoring as Scoring
 
 
 
@@ -19,10 +20,25 @@ def read_association_rules_into_memory(path__to_association_rules):
         score = float(line.split(",")[1])
         first_word = line.split("->")[0]
         second_word = line.split("->")[1].split(",")[0]
-
         association_rules.append((first_word,second_word,score))
 
     return association_rules
+
+
+def read_common_substrings_into_memory(cutoff):
+    client = MongoClient('localhost', 27017)
+    db = client['Substring_Research']  # Might have to change this back to mydb
+    collection = db["substring_Length3to8"]
+    #Based on running extract_top_x_Percentage substring it was found that the top %1 of common substrings happen over 176
+    start_time = time.time()
+    substrings_cursor =  collection.find({"value":{"$gt": cutoff}})#Returns all items where the value is greater than 76
+    list_to_return = list(substrings_cursor)
+    print("Mongo", time.time() - start_time, "s to run")
+
+    return list_to_return
+
+#Call not needed if using the new scoring function
+#common_substrings = read_common_substrings_into_memory(200)
 association_rules = read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 
 
@@ -38,8 +54,13 @@ This method modifies the probabilies returned by the markov model to include inf
 We include a scaleValue field which defines how much to multiply the confidence value by before using it to modify the probability returned by the markov model. 
 The goal is to try different confidence values (0.1 -> 1) and use linear regression to find the best values (this same scale value will also be used with common substrings)
 
-This also adds up all the confidence scores*scalar seen in the file. 
+This also adds up all the scores seen for the current word. It doesn't take into account if the score is generated from a newly created assocation rule.
 Is this the best approach?
+
+!!!!! WARNING if this is slow its because of block that gets called before association rule coverage, removing that will speed up every call to Password_Scoring !!!!!!!!
+
+Ideas on scale values to try
+In a testing case a scale_value of 2 would double the probability
 '''
 def add_assocation_rules_to_prob(currentPassword, probability_vector, scaleValue):
     assocation_probabilties = {}
@@ -55,50 +76,77 @@ def add_assocation_rules_to_prob(currentPassword, probability_vector, scaleValue
                 second_string_start_position = new_word.find(rule[1])
 
                 if(second_string_start_position > first_string_end_position):
-                    #TODO: Write a more intelligent scoring rule for the association rules
-                    confidence_value = rule[2]
-                    assocation_probabilties[char] = assocation_probabilties[char] + (confidence_value*scaleValue)
+                    assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.association_rule_coverage(new_word)*scaleValue)
 
 
 
     return assocation_probabilties
 
+start_time = time.time()
+
+'''
+TO TEST, ensures that probability goes up when adding an association rule.
+fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
+add_assocation_rules_to_prob("Pass0034",fake_prob_vector, 2)
+'''
+#add_common_substring_to_prob("Pass000",{"a":0.67, "b":0.333, "c":0.27, "de":0.1111},0.27 ,100000000000)
+print ("Association check took", time.time() - start_time, "s to run")
 
 
-fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.2}
-add_assocation_rules_to_prob("princ",fake_prob_vector, 0.1)
 
 
-
-#Cutoff at first should be 176 or top 1% of substrings
+#Old Method for finding substring coverage.
+#It was revamped b/c it did not take It added an unecessary double check to see if the substring was in the DB
+#!!!! Modify me if you want to do the scoring within the method instead of using the all read implemented scoring methods
+'''
 def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
-    substrings_list = []
+
     assocation_probabilties = {}
-
-    client = MongoClient('localhost', 27017)
-    db = client['Substring_Research']  # Might have to change this back to mydb
-    collection = db["substring_Length3to8"]
-    #Based on running extract_top_x_Percentage substring it was found that the top %1 of common substrings happen over 176
-    a =  collection.find({"value":{"$gt": cutoff}}) #Returns all items where the value is greater than 76
-
-    for item in a:
-        substrings_list.append(item)
-
     for char,probability in probability_vector.items():
         assocation_probabilties[char] = probability
+        start_time = time.time()
+        for substring in common_substrings: #Common
 
-        for substring in substrings_list:
             new_word = currentPassword + char
             if(substring["_id"] in new_word):
                 #TODO: Write a more intelligent scoring rule for the addition of the substring
-                assocation_probabilties[char] = assocation_probabilties[char] + (len(substring["_id"]) *scaleValue)
+                assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.common_substring_coverage(new_word, cutoff)) * scaleValue
+        print("Iterating over the words took:", time.time() - start_time, "s to run")
 
+    return assocation_probabilties
+
+'''
+
+'''
+Cutoff scores will result in the same value being returned for all characters. Found that a cutoff=100000, added the ability to really see the difference. 
+Also tests a scaling value of 0.27, which with the score was able to raise some values 28%
+'''
+#Cutoff at first should be 176 or top 1% of substrings
+def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
+
+    assocation_probabilties = {}
+    for char,probability in probability_vector.items():
+        assocation_probabilties[char] = probability
+        start_time = time.time()
+
+        new_word = currentPassword + char
+        assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.common_substring_coverage(new_word, cutoff)) * scaleValue
+    print("Iterating over the words took:", time.time() - start_time, "s to run")
 
     return assocation_probabilties
 
     #substring_list is a list of dictionaries. Where _id is string, and value is the hit count
 
-add_common_substring_to_prob("a","b","c","d")
+start_time = time.time()
+
+
+'''
+Example usage that showed this works as expected. tie > tic > tif in terms of # of times these substrings appeared in the DB
+You can see that the probabilities from the query below matches this. 
+
+add_common_substring_to_prob("ti",{"a":0.1, "b":0.1, "c":0.1, "d":0.1, "e":0.1, "f":0.1, "g":0.1, "h":0.1, "i":0.1, "j":0.1, "k":0.1, "l":0.1, "s": 0.1, "ss": 0.1},0.27 ,100000)
+'''
+print ("Substring took ", time.time() - start_time, "s to run")
 '''
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''

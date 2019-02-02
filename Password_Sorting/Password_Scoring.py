@@ -1,4 +1,11 @@
 
+'''
+
+
+Modified a lot of these to make the score bigger with the more coverage. Because the Markov chooses things with hgiher Numbers
+'''
+
+
 import pymongo
 from pymongo import MongoClient
 import re
@@ -55,9 +62,12 @@ def password_score_based_on_length(password):
 If the substring does not exist then a 0 is returned
 If the DB value is greater than the cutoff then a 1 is returned
 If the substring exists then its hitCount/cutOff is returned
+
+
+A cutOff at 176 is considered the top 1% of the original dataset
 '''
-cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.1)
-def normalizeSubstringFrequency(password):
+#cutOff =  extract_top_x_percent_substring.determinePercentageCutoff(0.1)
+def normalizeSubstringFrequency(password, cutOff):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
     if(collection.find_one({"_id":password}) is None):
@@ -75,7 +85,7 @@ If it corresponds to one of the regex's then a score is returned.
 If its in the top 20% percent (as defined in the cutoff) then a 1 is returned
 If its in the bottom 80% then regex  hitCount/cutOff is returned
 '''
-cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
+#cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
 def normalizeRegexFrequency(regex):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
@@ -88,6 +98,8 @@ def normalizeRegexFrequency(regex):
         return collection.find_one({"_id":regex})['value'] / cutOff_regex
 
 '''
+CutOff is the number of occurances you want to 
+
 Parameter 2 Substring coverage
 
 Fi = Normalized frequency (number of times that substring was seen in the data, substring “hits”) of a substring
@@ -101,14 +113,14 @@ Li = Length of the substring
 
 S =  sum(Li * Fi)/ (sum(Li) +_L)
 
-Score = 1.5^10(1-S)
+Score = 1.5^10(S)
 
 Justification: This gives preference to passwords with uncommon substrings, for example iloveyou# is a bad password because iloveyou is very common substring. xyzwtxax is a better password than iloveyou, because of dictionary attacks.
 Input Password
 Output score
 '''
 
-def common_substring_coverage(password):
+def common_substring_coverage(password, cutOff):
     db = client[SUBSTRING_DATABASE]
     collection = db[SUBSTRING_COLECTION]
     password_length = len(password)
@@ -134,7 +146,7 @@ def common_substring_coverage(password):
     denominator = 0.0  # sum(Li) +_L
 
     for substring in substringList:
-        normalized_frequency = normalizeSubstringFrequency(substring)
+        normalized_frequency = normalizeSubstringFrequency(substring, cutOff)
         substring_length = len(substring)
         numerator += substring_length * normalized_frequency
 
@@ -143,8 +155,8 @@ def common_substring_coverage(password):
     denominator = denominator + uncovered
 
 
-    score = 1.5 ** ((1 - (numerator / denominator)) * 10)
-    return score
+    score = 1.5 ** ((numerator / denominator) * 10)
+    return score/57.6650390625
 
 '''
 Parameter 3: Association rules coverage
@@ -156,7 +168,7 @@ _L=   Length of password uncovered. The number of chars in the password that are
 A = sum(Li*Ci) / (sum(Li) +_L)
 
 Score: 
-1.4^10(1-A)
+1.4^10(A)
 '''
 #The code is outside the method to prevent uneccesary repitition
 db = client[ASSOCIATION_RULES_DATABASE]
@@ -202,8 +214,8 @@ def association_rule_coverage(password):
 
 
 
-
-    return 1.4 ** ((1 - (numerator / denominator)) * 10)
+    #The division is to scvale the final answer between 0 and 1
+    return (1.4 ** ((numerator / denominator) * 10))/28.9254654976
 
 
 '''
@@ -280,7 +292,7 @@ def main(filePath):
 
 
 
-main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/short_UTF8_List.txt")
+#main("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/short_UTF8_List.txt")
 
 #f = open('scores.pkl', 'rb')  # 'r' for reading; can be omitted
 #value_list = pickle.load(f)  # load file content as mydict
