@@ -85,7 +85,8 @@ If it corresponds to one of the regex's then a score is returned.
 If its in the top 20% percent (as defined in the cutoff) then a 1 is returned
 If its in the bottom 80% then regex  hitCount/cutOff is returned
 '''
-#cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
+cutOff_regex =  extract_top_x_percent_substring.determinePercentageCutoff_For_Regex(0.2)
+print(cutOff_regex)
 def normalizeRegexFrequency(regex):
     db = client[REGEX_DATABASE]
     collection = db[REGEX_COLLECTION]
@@ -235,15 +236,21 @@ collection = db[REGEX_COLLECTION]
 regex_list = []
 for regex in collection.find():
     regex_list.append(regex)
+print("RAN REGEX FINDING FROM DB")
+'''
+Modified the score so that it doesn't include the 1-F. 
+Original Equation: Score = 1.3^10(1-Fi)
+New Equation (seen below): 1.3^10(Fi)
 
-
+Added the final division to to scale the output between 1 and 0.
+'''
 def regex_rulecoverage(password):
     for regeX in regex_list:
         if(re.match(regeX["_id"], password) is not None):
-            return 1.3**(10*(1-normalizeRegexFrequency(regeX["_id"])))
+            return (1.3**(10*normalizeRegexFrequency(regeX["_id"])))/13.7858491849
 
 
-    return 1.3 ** (10 * (1 - 0)) #The case when the regex is not in the DB
+    return (1.3 ** (10 * (1 - 0)))/13.7858491849 #The case when the regex is not in the DB
 
 '''
 THe main function runs all the rule coverage on an input list.

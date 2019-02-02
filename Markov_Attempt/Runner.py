@@ -137,7 +137,10 @@ def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue
 
     #substring_list is a list of dictionaries. Where _id is string, and value is the hit count
 
-start_time = time.time()
+print("sdaasdas")
+fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
+add_common_substring_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
+
 
 
 '''
@@ -146,10 +149,33 @@ You can see that the probabilities from the query below matches this.
 
 add_common_substring_to_prob("ti",{"a":0.1, "b":0.1, "c":0.1, "d":0.1, "e":0.1, "f":0.1, "g":0.1, "h":0.1, "i":0.1, "j":0.1, "k":0.1, "l":0.1, "s": 0.1, "ss": 0.1},0.27 ,100000)
 '''
-print ("Substring took ", time.time() - start_time, "s to run")
+
 '''
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
+
+def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
+
+    assocation_probabilties = {}
+    for char,probability in probability_vector.items():
+        assocation_probabilties[char] = probability
+        start_time = time.time()
+
+        new_word = currentPassword + char
+        assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.regex_rulecoverage(new_word)) * scaleValue
+    print("Iterating over the words took:", time.time() - start_time, "s to run")
+
+    return assocation_probabilties
+
+
+#To Test common_regex
+
+print("test Regex_to_prob")
+start_time = time.time()
+add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
+print ("REGEX check took", time.time() - start_time, "s to run")
+
+
 def probabilityToChar(charbag, probabilities):
     char_probs = {}
     for i in enumerate(probabilities):
