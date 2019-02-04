@@ -157,6 +157,8 @@ def common_substring_coverage(password, cutOff):
 
 
     score = 1.5 ** ((numerator / denominator) * 10)
+    if (score == 1):
+        return 0
     return score/57.6650390625
 
 '''

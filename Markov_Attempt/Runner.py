@@ -122,6 +122,7 @@ Cutoff scores will result in the same value being returned for all characters. F
 Also tests a scaling value of 0.27, which with the score was able to raise some values 28%
 '''
 #Cutoff at first should be 176 or top 1% of substrings
+#TODO: Add code to automaticly determine cutoff, code exists in the password Sorting folder to do this.
 def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
 
     assocation_probabilties = {}
@@ -138,8 +139,8 @@ def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue
     #substring_list is a list of dictionaries. Where _id is string, and value is the hit count
 
 print("sdaasdas")
-fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
-add_common_substring_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
+#fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
+#add_common_substring_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
 
 
 
@@ -154,7 +155,7 @@ add_common_substring_to_prob("ti",{"a":0.1, "b":0.1, "c":0.1, "d":0.1, "e":0.1, 
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
 
-def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
+def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue):
 
     assocation_probabilties = {}
     for char,probability in probability_vector.items():
@@ -172,7 +173,7 @@ def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue, cu
 
 print("test Regex_to_prob")
 start_time = time.time()
-add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
+#add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
 print ("REGEX check took", time.time() - start_time, "s to run")
 
 
@@ -188,7 +189,7 @@ def probabilityToChar(charbag, probabilities):
 config = Mock()
 config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10),('passwords', 10)])
+m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10),('Spasswords', 10)])
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -204,6 +205,11 @@ def markovBuilder(currentNode, maxPasswordLength=10):
     if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
         m.predict(currentNode.value, answer)
         char_to_add = probabilityToChar(m.alphabet, answer)
+        #The lines below add our rules to the probabilties
+        char_to_add =  add_common_substring_to_prob(currentNode.value, char_to_add, 0.25, 100000) #Adds substring probabilities
+        char_to_add = add_assocation_rules_to_prob(currentNode.value,char_to_add, 2)
+        char_to_add = add_common_regex_to_prob(currentNode.value, char_to_add, 0.25)
+
         for char, probability in char_to_add.items():
 
             newString = currentNode.value + char
