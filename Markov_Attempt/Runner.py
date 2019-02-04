@@ -9,6 +9,9 @@ import sys
 from pymongo import MongoClient
 import time
 import Password_Sorting.Password_Scoring as Scoring
+import string
+
+
 
 
 
@@ -187,9 +190,9 @@ def probabilityToChar(charbag, probabilities):
 
 
 config = Mock()
-config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
+config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + string.printable
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('passA', 1), ('past', 1), ('ashen', 1), ('ass', 1), ('blah', 1), ('password', 10),('Spasswords', 10)])
+m.train([('pass+A', 1), ('past', 1), ('ashen', 1), ('as&^R$s', 1), ('bl+ah', 1), ('password', 10),('Spasswords', 10), ('+}{::', 10)])
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -200,7 +203,7 @@ sys.setrecursionlimit(50000)
 def markovBuilder(currentNode, maxPasswordLength=10):
     config = Mock()
     #TODO: Add full character set to the char bag
-    config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
+    config.char_bag = pg.PASSWORD_END +  pg.PASSWORD_START + string.printable
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
     if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
         m.predict(currentNode.value, answer)

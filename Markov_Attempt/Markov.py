@@ -25,7 +25,7 @@ class NoSmoothingSmoother(object):
         self.config = config
 
     def predict(self, ctx_arg, answer):
-        assert answer.shape == (len(self.alphabet),)
+#        assert answer.shape == (len(self.alphabet),)
         return self._predict(ctx_arg, answer)
 
     def freq(self, ngram):
