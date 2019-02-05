@@ -160,6 +160,7 @@ def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue):
         start_time = time.time()
 
         new_word = currentPassword + char
+        new_word = new_word.strip()
         assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.regex_rulecoverage(new_word)) * scaleValue
     print("Iterating over the words took:", time.time() - start_time, "s to run")
 
