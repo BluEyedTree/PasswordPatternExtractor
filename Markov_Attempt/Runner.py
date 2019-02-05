@@ -11,9 +11,26 @@ import time
 import Password_Sorting.Password_Scoring as Scoring
 import string
 
+#TODO: Should paswords used for training have the start and end characters?
+def generate_dataset_from_textfile(textfile_path):
+    words_dict = {}
+    list_to_return = []
+    text_file = open(textfile_path,"r")
+    for word in text_file:
+        if word in words_dict:
+            words_dict[word] += 1
+        else:
+            words_dict[word] = 1
+
+    for key,value in words_dict.items():
+        list_to_return.append((key,value))
+
+
+    return list_to_return
 
 
 
+print(generate_dataset_from_textfile("/Users/thomasbekman/Desktop/pass.txt"))
 
 def read_association_rules_into_memory(path__to_association_rules):
     association_rules = []
@@ -192,7 +209,7 @@ def probabilityToChar(charbag, probabilities):
 config = Mock()
 config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + string.printable
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('pass+A', 1), ('past', 1), ('ashen', 1), ('as&^R$s', 1), ('bl+ah', 1), ('password', 10),('Spasswords', 10), ('+}{::', 10)])
+m.train([('pass+A', 1), ('past', 1), ('ashen', 1), ('as&^R$s', 1), ('bl+ah', 1),('bl+ahs', 1),('blhma', 1), ('blmag', 1),('blmfa', 1),('bldma', 1),('blmas', 1), ('password', 1),('Spasswords', 10), ('pass+}{::', 10)])
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -237,6 +254,8 @@ def getPasswords(node):
         for sibling in node.getChildren():
             getPasswords(sibling)
     else:
-        passwords.append(node.value)
+        passwords.append((node.priority,node.value))
 getPasswords(root_node)
-print(passwords)
+passwords.sort(reverse=True)
+for i in  passwords:
+    print(i)
