@@ -114,29 +114,6 @@ print ("Association check took", time.time() - start_time, "s to run")
 
 
 
-
-#Old Method for finding substring coverage.
-#It was revamped b/c it did not take It added an unecessary double check to see if the substring was in the DB
-#!!!! Modify me if you want to do the scoring within the method instead of using the all read implemented scoring methods
-'''
-def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
-
-    assocation_probabilties = {}
-    for char,probability in probability_vector.items():
-        assocation_probabilties[char] = probability
-        start_time = time.time()
-        for substring in common_substrings: #Common
-
-            new_word = currentPassword + char
-            if(substring["_id"] in new_word):
-                #TODO: Write a more intelligent scoring rule for the addition of the substring
-                assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.common_substring_coverage(new_word, cutoff)) * scaleValue
-        print("Iterating over the words took:", time.time() - start_time, "s to run")
-
-    return assocation_probabilties
-
-'''
-
 '''
 Cutoff scores will result in the same value being returned for all characters. Found that a cutoff=100000, added the ability to really see the difference. 
 Also tests a scaling value of 0.27, which with the score was able to raise some values 28%
