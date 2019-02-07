@@ -147,7 +147,10 @@ def getPasswords(node):
             getPasswords(sibling)
     else:
         passwords.append(node.value)
+
+
 print("sdasdas")
 getPasswords(tom)
 
 print(passwords)
+

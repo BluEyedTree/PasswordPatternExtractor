@@ -240,9 +240,22 @@ def getPasswords(node):
             getPasswords(sibling)
     else:
         passwords.append((node.priority,node.value))
+
+
+def write_passwords_to_file(file_path):
+    passwords.sort(reverse=True)
+    with open(file_path, "w") as f:
+        for password in passwords:
+            f.write(str((password[0], password[1].strip()))+"\n")
+
+
+
+
+
+
 getPasswords(root_node)
 passwords.sort(reverse=True)
 print(len(passwords))
+write_passwords_to_file("/Users/thomasbekman/git/PasswordPatternExtractor/example.txt")
 
-for i in  passwords:
-    print(i[0],str(i[1]).strip())
+
