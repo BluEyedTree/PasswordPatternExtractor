@@ -18,12 +18,12 @@ def generate_dataset_from_textfile(textfile_path):
     text_file = open(textfile_path,"r")
     for word in text_file:
         if word in words_dict:
-            words_dict[word] += 1
+            words_dict[word.strip()] += 1
         else:
-            words_dict[word] = 1
+            words_dict[word.strip()] = 1
 
     for key,value in words_dict.items():
-        list_to_return.append((key,value))
+        list_to_return.append(("\t"+key,value))
 
 
     return list_to_return
@@ -185,9 +185,16 @@ def probabilityToChar(charbag, probabilities):
 
 
 config = Mock()
-config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + string.printable
+
+white_space_chars = set(string.whitespace)
+all_chars = b = set(string.printable)
+chars_to_use = list(all_chars - white_space_chars)
+chars_to_use = "".join(chars_to_use)
+
+
+config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('pass+A', 1), ('past', 1), ('ashen', 1), ('as&^R$s', 1), ('bl+ah', 1),('bl+ahs', 1),('blhma', 1), ('blmag', 1),('blmfa', 1),('bldma', 1),('blmas', 1), ('password', 1),('Spasswords', 10), ('pass+}{::', 10)])
+m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -198,7 +205,7 @@ sys.setrecursionlimit(50000)
 def markovBuilder(currentNode, maxPasswordLength=10):
     config = Mock()
     #TODO: Add full character set to the char bag
-    config.char_bag = pg.PASSWORD_END +  pg.PASSWORD_START + string.printable
+    config.char_bag = pg.PASSWORD_END +  pg.PASSWORD_START + chars_to_use
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
     if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
         m.predict(currentNode.value, answer)
@@ -235,5 +242,7 @@ def getPasswords(node):
         passwords.append((node.priority,node.value))
 getPasswords(root_node)
 passwords.sort(reverse=True)
+print(len(passwords))
+
 for i in  passwords:
-    print(i)
+    print(i[0],str(i[1]).strip())

@@ -85,7 +85,7 @@ class Node(object):
         obj.parent = self
 
     def getChildren(self):
-        self.children.sort(reverse=True)
+        #self.children.sort(reverse=True) #Removed the sort as I couldn't get
         #return self.children.getAll()
         return self.children
 
