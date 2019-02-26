@@ -32,6 +32,8 @@ def generate_dataset_from_textfile(textfile_path):
 
 print(generate_dataset_from_textfile("/Users/thomasbekman/Desktop/pass.txt"))
 
+training_data = generate_dataset_from_textfile("/Users/thomasbekman/Desktop/10_pass.txt")
+
 def read_association_rules_into_memory(path__to_association_rules):
     association_rules = []
     with open(path__to_association_rules) as f:
@@ -82,7 +84,7 @@ Is this the best approach?
 Ideas on scale values to try
 In a testing case a scale_value of 2 would double the probability
 '''
-def add_assocation_rules_to_prob(currentPassword, probability_vector, scaleValue):
+def add_assocation_rules_to_prob(currentPassword, probability_vector):
     assocation_probabilties = {}
     for char,probability in probability_vector.items():
         assocation_probabilties[char] = probability
@@ -96,7 +98,7 @@ def add_assocation_rules_to_prob(currentPassword, probability_vector, scaleValue
                 second_string_start_position = new_word.find(rule[1])
 
                 if(second_string_start_position > first_string_end_position):
-                    assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.association_rule_coverage(new_word)*scaleValue)
+                    assocation_probabilties[char] = Scoring.association_rule_coverage(new_word)
 
 
 
@@ -120,7 +122,7 @@ Also tests a scaling value of 0.27, which with the score was able to raise some 
 '''
 #Cutoff at first should be 176 or top 1% of substrings
 #TODO: Add code to automaticly determine cutoff, code exists in the password Sorting folder to do this.
-def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue, cutoff):
+def add_common_substring_to_prob(currentPassword, probability_vector, cutoff):
 
     assocation_probabilties = {}
     for char,probability in probability_vector.items():
@@ -128,7 +130,7 @@ def add_common_substring_to_prob(currentPassword, probability_vector, scaleValue
         start_time = time.time()
 
         new_word = currentPassword + char
-        assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.common_substring_coverage(new_word, cutoff)) * scaleValue
+        assocation_probabilties[char] = Scoring.common_substring_coverage(new_word, cutoff)
     print("Iterating over the words took:", time.time() - start_time, "s to run")
 
     return assocation_probabilties
@@ -152,7 +154,7 @@ add_common_substring_to_prob("ti",{"a":0.1, "b":0.1, "c":0.1, "d":0.1, "e":0.1, 
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
 
-def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue):
+def add_common_regex_to_prob(currentPassword, probability_vector):
 
     assocation_probabilties = {}
     for char,probability in probability_vector.items():
@@ -161,7 +163,7 @@ def add_common_regex_to_prob(currentPassword, probability_vector, scaleValue):
 
         new_word = currentPassword + char
         new_word = new_word.strip()
-        assocation_probabilties[char] = assocation_probabilties[char] + (Scoring.regex_rulecoverage(new_word)) * scaleValue
+        assocation_probabilties[char] = Scoring.regex_rulecoverage(new_word)
     print("Iterating over the words took:", time.time() - start_time, "s to run")
 
     return assocation_probabilties
@@ -173,6 +175,24 @@ print("test Regex_to_prob")
 start_time = time.time()
 #add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
 print ("REGEX check took", time.time() - start_time, "s to run")
+
+
+#TODO: Make this work!
+def calculate_weighted_average(association_prob, substring_prob, regex_prob, association_weight, substring_weight, regex_weight):
+    averaged_probabilities = {}
+    for key in association_prob.keys():
+        total_weight = association_weight + substring_weight + regex_weight
+        association_contribution = association_prob[key] * association_weight
+        substring_contribution = substring_prob[key] * substring_weight
+        regex_contribution = regex_prob[key] * regex_weight
+        weighted_average = (association_contribution + substring_contribution + regex_contribution) / total_weight
+        averaged_probabilities[key] = weighted_average
+    return  averaged_probabilities
+
+a = {"a":1.2, "b":2, "c":1.7}
+
+print("BOOOM")
+print(calculate_weighted_average(a,a,a,5,4,2))
 
 
 def probabilityToChar(charbag, probabilities):
@@ -194,7 +214,8 @@ chars_to_use = "".join(chars_to_use)
 
 config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use
 m = Markov.MarkovModel(config, smoothing='none', order=3)
-m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
+#m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
+m.train(training_data)
 answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 m.predict('', answer)
 
@@ -211,9 +232,11 @@ def markovBuilder(currentNode, maxPasswordLength=10):
         m.predict(currentNode.value, answer)
         char_to_add = probabilityToChar(m.alphabet, answer)
         #The lines below add our rules to the probabilties
-        char_to_add =  add_common_substring_to_prob(currentNode.value, char_to_add, 0.25, 100000) #Adds substring probabilities
-        char_to_add = add_assocation_rules_to_prob(currentNode.value,char_to_add, 2)
-        char_to_add = add_common_regex_to_prob(currentNode.value, char_to_add, 0.25)
+        char_to_add =  add_common_substring_to_prob(currentNode.value, char_to_add, 100000) #Adds substring probabilities
+        char_to_add = add_assocation_rules_to_prob(currentNode.value,char_to_add)
+        char_to_add = add_common_regex_to_prob(currentNode.value, char_to_add)
+
+        #ADD the weighted average calculation, and multiplying by scale values
 
         for char, probability in char_to_add.items():
 
@@ -243,7 +266,7 @@ def getPasswords(node):
 
 
 def write_passwords_to_file(file_path):
-    passwords.sort(reverse=True)
+    passwords.sort(reverse=True)≠
     with open(file_path, "w") as f:
         for password in passwords:
             f.write(str((password[0], password[1].strip()))+"\n")
@@ -256,6 +279,7 @@ def write_passwords_to_file(file_path):
 getPasswords(root_node)
 passwords.sort(reverse=True)
 print(len(passwords))
+print(passwords)
 write_passwords_to_file("/Users/thomasbekman/git/PasswordPatternExtractor/example.txt")
 
 
