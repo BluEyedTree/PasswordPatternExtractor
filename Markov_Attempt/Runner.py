@@ -10,6 +10,7 @@ from pymongo import MongoClient
 import time
 import Password_Sorting.Password_Scoring as Scoring
 import string
+import math
 
 #TODO: Should paswords used for training have the start and end characters?
 def generate_dataset_from_textfile(textfile_path):
@@ -30,9 +31,9 @@ def generate_dataset_from_textfile(textfile_path):
 
 
 
-print(generate_dataset_from_textfile("/Users/thomasbekman/Desktop/pass.txt"))
+#print(generate_dataset_from_textfile("/Users/thomasbekman/Desktop/pass.txt"))
 
-training_data = generate_dataset_from_textfile("/Users/thomasbekman/Desktop/10_pass.txt")
+training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
 
 def read_association_rules_into_memory(path__to_association_rules):
     association_rules = []
@@ -197,15 +198,18 @@ print(calculate_weighted_average(a,a,a,5,4,2))
 
 def probabilityToChar(charbag, probabilities):
     char_probs = {}
+    print(probabilities[0])
+    print(type(probabilities[0]))
+
     for i in enumerate(probabilities):
-        if i[1] != 0:
-            #char_probs.append((charbag[i[0]],i[1]))
+        if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
             char_probs[charbag[i[0]]] = i[1]
     return char_probs
 
 
+#Below are a bunch of configurations for the markov model.
+#TODO: Pull all this out and have it be configurable.
 config = Mock()
-
 white_space_chars = set(string.whitespace)
 all_chars = b = set(string.printable)
 chars_to_use = list(all_chars - white_space_chars)
@@ -216,8 +220,56 @@ config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use
 m = Markov.MarkovModel(config, smoothing='none', order=3)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
-answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
-m.predict('', answer)
+#answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
+#m.predict('', answer)
+
+
+
+def pop_max(input_list):
+    list1 = [input_list.pop(input_list.index(max(input_list)))]
+    return list1
+
+'''
+Initalize first layer creates the first layer you want for you markov tree. 
+It currently starts creating string from the empty string
+'''
+
+#The two vars below are used in the getNext function
+current_layer = []
+to_pop = []
+def initialize_first_current_layer():
+    global  current_layer
+
+    answer = np.zeros((len(config.char_bag),), dtype=np.float64)
+    m.predict("", answer)
+    prediction_dict = probabilityToChar(m.alphabet, answer)
+
+
+    for key in prediction_dict.keys():
+        current_layer.append((prediction_dict[key],key))
+
+def get_next():
+    global current_layer
+    global to_pop
+    a = current_layer
+    new_current = []
+
+    answer = np.zeros((len(config.char_bag),), dtype=np.float64)
+
+    if to_pop != []:
+        return pop_max(to_pop)
+    else:
+        new_current = []
+        for substring in current_layer:
+            to_pop.append(substring)
+            m.predict(substring[1], answer)
+            prediction_dict =  probabilityToChar(m.alphabet, answer)
+            for prediction in prediction_dict.items():
+                to_add_word = substring[1] + prediction[0]
+                to_add_prob = substring[0] * prediction[1]
+                new_current.append((to_add_prob,to_add_word))
+    current_layer = new_current
+    return pop_max(to_pop)
 
 
 
@@ -250,8 +302,8 @@ def markovBuilder(currentNode, maxPasswordLength=10):
             markovBuilder(child)
 
 
-
-markovBuilder(root_node)
+#To run the builder call the function below
+#markovBuilder(root_node)
 
 '''
 Goes through the tree the markov builder made, and returns the passwords in order into a list
@@ -266,20 +318,44 @@ def getPasswords(node):
 
 
 def write_passwords_to_file(file_path):
-    passwords.sort(reverse=True)≠
+    passwords.sort(reverse=True)
     with open(file_path, "w") as f:
         for password in passwords:
             f.write(str((password[0], password[1].strip()))+"\n")
 
+print("testing Initiilizing current layer")
+#print(current_layer)
+'''
+initialize_first_current_layer()
+for i in range(0,10000):
+    print(get_next())
+'''
+answer = np.zeros((len(config.char_bag),), dtype=np.float64)
+m.predict("\t12", answer)
+print(probabilityToChar(m.alphabet, answer))
+
+#print(current_layer)
+initialize_first_current_layer()
+try:
+    for i in range(0,1000):
+        print(get_next())
+except:
+    print("done")
 
 
 
 
+#print(get_next())
+#print(get_next())
 
+
+'''
 getPasswords(root_node)
 passwords.sort(reverse=True)
 print(len(passwords))
 print(passwords)
 write_passwords_to_file("/Users/thomasbekman/git/PasswordPatternExtractor/example.txt")
+'''
+
 
 
