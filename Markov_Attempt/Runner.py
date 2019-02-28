@@ -1,5 +1,3 @@
-import Markov_Attempt.treeForMarkov as tree
-
 import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
 from unittest.mock import Mock, MagicMock
@@ -195,7 +193,9 @@ chars_to_use = list(all_chars - white_space_chars)
 chars_to_use = "".join(chars_to_use)
 
 
-config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use
+config.char_bag = list(pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use)
+#config.char_bag.append("tar")
+
 m = Markov.MarkovModel(config, smoothing='none', order=2)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
@@ -230,7 +230,7 @@ def initialize_first_current_layer():
 Calling this function returns you the next prediction. 
 '''
 
-def get_next():
+def get_next(max_pwd_length):
     global current_layer
     global to_pop
     new_current = []
@@ -252,7 +252,8 @@ def get_next():
                 #Two lines below need to be run when weighted prob is working
                 weighted_average_probs = calculate_weighted_average(markov_prob, association_prob, substring_prob,regex_prob , 0.25, 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                 to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
-                new_current.append((to_add_prob,to_add_word))
+                if len(to_add_word) <= max_pwd_length:
+                    new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
     return pop_max(to_pop)
 
@@ -263,7 +264,7 @@ def generatePasswords():
     passwords = []
     try:
         while True:
-            next_password = get_next() #Next password might not be the complete guess
+            next_password = get_next(7) #Next password might not be the complete guess
             if "\n" in next_password[0][1]:
                 prob = next_password[0][0]
                 formatted_password = next_password[0][1].strip()
