@@ -85,13 +85,11 @@ Is this the best approach?
 Ideas on scale values to try
 In a testing case a scale_value of 2 would double the probability
 '''
-def add_assocation_rules_to_prob(currentPassword, probability_vector):
-    assocation_probabilties = {}
-    for char,probability in probability_vector.items():
-        assocation_probabilties[char] = probability
-
+def add_assocation_rules_to_prob(currentPassword,  char_to_add):
+        association_prob = 0
+        start_time = time.time()
         for rule in association_rules:
-            new_word = currentPassword + char
+            new_word = currentPassword + char_to_add
             #If you want to make this more stringent, then you should add the following to the if block:  and rule[1]  not in currentPassword
             #This would only increase the probability when the association rule is created with the addition of the letter. Instead of now where the probabilties are increased for every letter added after the creation of an association rule.
             if(rule[0] in new_word and rule[1] in new_word):
@@ -99,13 +97,12 @@ def add_assocation_rules_to_prob(currentPassword, probability_vector):
                 second_string_start_position = new_word.find(rule[1])
 
                 if(second_string_start_position > first_string_end_position):
-                    assocation_probabilties[char] = Scoring.association_rule_coverage(new_word)
+                    association_prob = Scoring.association_rule_coverage(new_word)
+
+        print("Association check took", time.time() - start_time, "s to run")
+        return association_prob
 
 
-
-    return assocation_probabilties
-
-start_time = time.time()
 
 '''
 TO TEST, ensures that probability goes up when adding an association rule.
@@ -113,7 +110,7 @@ fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
 add_assocation_rules_to_prob("Pass0034",fake_prob_vector, 2)
 '''
 #add_common_substring_to_prob("Pass000",{"a":0.67, "b":0.333, "c":0.27, "de":0.1111},0.27 ,100000000000)
-print ("Association check took", time.time() - start_time, "s to run")
+
 
 
 
@@ -123,24 +120,19 @@ Also tests a scaling value of 0.27, which with the score was able to raise some 
 '''
 #Cutoff at first should be 176 or top 1% of substrings
 #TODO: Add code to automaticly determine cutoff, code exists in the password Sorting folder to do this.
-def add_common_substring_to_prob(currentPassword, probability_vector, cutoff):
+def add_common_substring_to_prob(currentPassword, char_to_add,  cutoff):
+        substring_prob = 0
 
-    assocation_probabilties = {}
-    for char,probability in probability_vector.items():
-        assocation_probabilties[char] = probability
         start_time = time.time()
 
-        new_word = currentPassword + char
-        assocation_probabilties[char] = Scoring.common_substring_coverage(new_word, cutoff)
-    print("Iterating over the words took:", time.time() - start_time, "s to run")
+        new_word = currentPassword + char_to_add
+        substring_prob = Scoring.common_substring_coverage(new_word, cutoff)
+        print("Substring Time:", time.time() - start_time, "s to run")
 
-    return assocation_probabilties
+        return substring_prob
 
     #substring_list is a list of dictionaries. Where _id is string, and value is the hit count
 
-print("sdaasdas")
-#fake_prob_vector = {"e":0.2, "a": 0.3, "p": 0.1, "12":0.1}
-#add_common_substring_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
 
 
 
@@ -155,19 +147,18 @@ add_common_substring_to_prob("ti",{"a":0.1, "b":0.1, "c":0.1, "d":0.1, "e":0.1, 
 A utility method that takes in the charbag, and probabilities as inputs. It returns the chars, along with their probabilties
 '''
 
-def add_common_regex_to_prob(currentPassword, probability_vector):
+def add_common_regex_to_prob(currentPassword, char_to_add):
+    regex_prob = 0
 
-    assocation_probabilties = {}
-    for char,probability in probability_vector.items():
-        assocation_probabilties[char] = probability
-        start_time = time.time()
 
-        new_word = currentPassword + char
-        new_word = new_word.strip()
-        assocation_probabilties[char] = Scoring.regex_rulecoverage(new_word)
-    print("Iterating over the words took:", time.time() - start_time, "s to run")
+    start_time = time.time()
 
-    return assocation_probabilties
+    new_word = currentPassword + char_to_add
+    new_word = new_word.strip()
+    regex_prob = Scoring.regex_rulecoverage(new_word)
+    print("Regex Time:", time.time() - start_time, "s to run")
+
+    return regex_prob
 
 
 #To Test common_regex
@@ -268,87 +259,30 @@ def get_next():
             prediction_dict =  probabilityToChar(m.alphabet, answer)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
-
                 substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
                 association_prob = add_assocation_rules_to_prob(substring[1], prediction[0])
                 regex_prob = add_common_regex_to_prob(substring[1], prediction[0])
                 #Two lines below need to be run when weighted prob is working
-                #weighted_average_probs =  substring_prob + association_prob + regex_prob + prediction[1] #TODO: Fix this line so it calls a weighted average function
-                #to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
-                to_add_prob = substring[0] * prediction[1]
+                weighted_average_probs =  substring_prob * association_prob * regex_prob * prediction[1] #TODO: Fix this line so it calls a weighted average function
+                to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
+                #to_add_prob = substring[0] * prediction[1]
                 new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
     return pop_max(to_pop)
 
 
-
+#TODO: This probably needs to write to the mongoDB, or batch write a text file. All passwords should probably be made before the testing stage.
+initialize_first_current_layer()
 def generatePasswords():
     passwords = []
-    initialize_first_current_layer()
+    #initialize_first_current_layer()
     try:
         while True:
             next_password = get_next() #Next password might not be the complete guess
-            if "\n" in a[0][1]:
-                print(next_password)
+            if "\n" in next_password[0][1]:
                 passwords.append(next_password)
 
     except:
         return passwords
-
-
-
-
-print(generatePasswords())
-print(get_next())
-print(get_next())
-
-#To run the builder call the function below
-#markovBuilder(root_node)
-
-
-
-print("testing Initiilizing current layer")
-#print(current_layer)
-'''
-initialize_first_current_layer()
-for i in range(0,10000):
-    print(get_next())
-'''
-'''
-print("------------")
-
-a = (0.2, '\tAb')
-answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-m.predict(a[0], answer)
-char_to_add = probabilityToChar(m.alphabet, answer)
-print(char_to_add)
-print("------------")
-'''
-#print(current_layer)
-initialize_first_current_layer()
-#TODO: Make this cleaner. Having to catch the exception to finish seems silly.
-count = 0
-try:
-    while True:
-        a = get_next()
-        if "\n" in a[0][1]:
-            count +=1
-            print(a)
-
-except:
-    print("done")
-
-print("The get Next method produced: " + str(count) + " results")
-
-
-
-'''
-getPasswords(root_node)
-passwords.sort(reverse=True)
-print(len(passwords))
-print(passwords)
-write_passwords_to_file("/Users/thomasbekman/git/PasswordPatternExtractor/example.txt")
-'''
-
 
 
