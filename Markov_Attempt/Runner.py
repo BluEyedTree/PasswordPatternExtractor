@@ -169,23 +169,16 @@ start_time = time.time()
 print ("REGEX check took", time.time() - start_time, "s to run")
 
 
-#TODO: Make this work!
-def calculate_weighted_average(association_prob, substring_prob, regex_prob, association_weight, substring_weight, regex_weight):
-    averaged_probabilities = {}
-    for key in association_prob.keys():
-        total_weight = association_weight + substring_weight + regex_weight
-        association_contribution = association_prob[key] * association_weight
-        substring_contribution = substring_prob[key] * substring_weight
-        regex_contribution = regex_prob[key] * regex_weight
-        weighted_average = (association_contribution + substring_contribution + regex_contribution) / total_weight
-        averaged_probabilities[key] = weighted_average
-    return  averaged_probabilities
 
-a = {"a":1.2, "b":2, "c":1.7}
+def calculate_weighted_average(markov_prob, association_prob, substring_prob, regex_prob, markov_weight, association_weight, substring_weight, regex_weight):
 
-print("BOOOM")
-print(calculate_weighted_average(a,a,a,5,4,2))
-
+    total_weight = association_weight + substring_weight + regex_weight + markov_weight
+    markov_contribution = markov_prob * markov_weight
+    association_contribution = association_prob * association_weight
+    substring_contribution = substring_prob * substring_weight
+    regex_contribution = regex_prob * regex_weight
+    weighted_average = (association_contribution + substring_contribution + regex_contribution + markov_contribution) / total_weight
+    return  weighted_average
 
 def probabilityToChar(charbag, probabilities):
     char_probs = {}
@@ -259,13 +252,13 @@ def get_next():
             prediction_dict =  probabilityToChar(m.alphabet, answer)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
+                markov_prob = prediction[1]
                 substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
                 association_prob = add_assocation_rules_to_prob(substring[1], prediction[0])
                 regex_prob = add_common_regex_to_prob(substring[1], prediction[0])
                 #Two lines below need to be run when weighted prob is working
-                weighted_average_probs =  substring_prob * association_prob * regex_prob * prediction[1] #TODO: Fix this line so it calls a weighted average function
+                weighted_average_probs = calculate_weighted_average(markov_prob, association_prob, substring_prob,regex_prob , 0.25, 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                 to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
-                #to_add_prob = substring[0] * prediction[1]
                 new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
     return pop_max(to_pop)
@@ -275,14 +268,17 @@ def get_next():
 initialize_first_current_layer()
 def generatePasswords():
     passwords = []
-    #initialize_first_current_layer()
     try:
         while True:
             next_password = get_next() #Next password might not be the complete guess
             if "\n" in next_password[0][1]:
-                passwords.append(next_password)
+                prob = next_password[0][0]
+                formatted_password = next_password[0][1].strip()
+                passwords.append((prob,formatted_password))
 
     except:
         return passwords
 
-
+print("----")
+print(generatePasswords())
+print("----")
