@@ -198,9 +198,6 @@ print(calculate_weighted_average(a,a,a,5,4,2))
 
 def probabilityToChar(charbag, probabilities):
     char_probs = {}
-    print(probabilities[0])
-    print(type(probabilities[0]))
-
     for i in enumerate(probabilities):
         if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
             char_probs[charbag[i[0]]] = i[1]
@@ -217,7 +214,7 @@ chars_to_use = "".join(chars_to_use)
 
 
 config.char_bag = pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use
-m = Markov.MarkovModel(config, smoothing='none', order=3)
+m = Markov.MarkovModel(config, smoothing='none', order=2)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
 #answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
@@ -247,11 +244,15 @@ def initialize_first_current_layer():
 
     for key in prediction_dict.keys():
         current_layer.append((prediction_dict[key],key))
+'''
+Calling this function returns you the next prediction. 
+'''
 
 def get_next():
     global current_layer
     global to_pop
     a = current_layer
+    b = to_pop
     new_current = []
 
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
@@ -261,11 +262,19 @@ def get_next():
     else:
         new_current = []
         for substring in current_layer:
+            answer = np.zeros((len(config.char_bag),), dtype=np.float64)
             to_pop.append(substring)
             m.predict(substring[1], answer)
             prediction_dict =  probabilityToChar(m.alphabet, answer)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
+
+                substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
+                association_prob = add_assocation_rules_to_prob(substring[1], prediction[0])
+                regex_prob = add_common_regex_to_prob(substring[1], prediction[0])
+                #Two lines below need to be run when weighted prob is working
+                #weighted_average_probs =  substring_prob + association_prob + regex_prob + prediction[1] #TODO: Fix this line so it calls a weighted average function
+                #to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                 to_add_prob = substring[0] * prediction[1]
                 new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
@@ -273,55 +282,30 @@ def get_next():
 
 
 
-root_node = tree.Node("",1)
-sys.setrecursionlimit(50000)
-def markovBuilder(currentNode, maxPasswordLength=10):
-    config = Mock()
-    #TODO: Add full character set to the char bag
-    config.char_bag = pg.PASSWORD_END +  pg.PASSWORD_START + chars_to_use
-    answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-    if ("\n" not in currentNode.value and len(currentNode.value)<=maxPasswordLength):
-        m.predict(currentNode.value, answer)
-        char_to_add = probabilityToChar(m.alphabet, answer)
-        #The lines below add our rules to the probabilties
-        char_to_add =  add_common_substring_to_prob(currentNode.value, char_to_add, 100000) #Adds substring probabilities
-        char_to_add = add_assocation_rules_to_prob(currentNode.value,char_to_add)
-        char_to_add = add_common_regex_to_prob(currentNode.value, char_to_add)
+def generatePasswords():
+    passwords = []
+    initialize_first_current_layer()
+    try:
+        while True:
+            next_password = get_next() #Next password might not be the complete guess
+            if "\n" in a[0][1]:
+                print(next_password)
+                passwords.append(next_password)
 
-        #ADD the weighted average calculation, and multiplying by scale values
+    except:
+        return passwords
 
-        for char, probability in char_to_add.items():
 
-            newString = currentNode.value + char
-            newProbability = probability * currentNode.priority #Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
 
-            new_node_to_add = tree.Node(newString,newProbability)
-            currentNode.add_child(new_node_to_add)
 
-        for child in currentNode.getChildren():
-            markovBuilder(child)
-
+print(generatePasswords())
+print(get_next())
+print(get_next())
 
 #To run the builder call the function below
 #markovBuilder(root_node)
 
-'''
-Goes through the tree the markov builder made, and returns the passwords in order into a list
-'''
-passwords = []
-def getPasswords(node):
-    if(node.getChildren() != []):
-        for sibling in node.getChildren():
-            getPasswords(sibling)
-    else:
-        passwords.append((node.priority,node.value))
 
-
-def write_passwords_to_file(file_path):
-    passwords.sort(reverse=True)
-    with open(file_path, "w") as f:
-        for password in passwords:
-            f.write(str((password[0], password[1].strip()))+"\n")
 
 print("testing Initiilizing current layer")
 #print(current_layer)
@@ -330,23 +314,32 @@ initialize_first_current_layer()
 for i in range(0,10000):
     print(get_next())
 '''
-answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-m.predict("\t12", answer)
-print(probabilityToChar(m.alphabet, answer))
+'''
+print("------------")
 
+a = (0.2, '\tAb')
+answer = np.zeros((len(config.char_bag),), dtype=np.float64)
+m.predict(a[0], answer)
+char_to_add = probabilityToChar(m.alphabet, answer)
+print(char_to_add)
+print("------------")
+'''
 #print(current_layer)
 initialize_first_current_layer()
+#TODO: Make this cleaner. Having to catch the exception to finish seems silly.
+count = 0
 try:
-    for i in range(0,1000):
-        print(get_next())
+    while True:
+        a = get_next()
+        if "\n" in a[0][1]:
+            count +=1
+            print(a)
+
 except:
     print("done")
 
+print("The get Next method produced: " + str(count) + " results")
 
-
-
-#print(get_next())
-#print(get_next())
 
 
 '''
