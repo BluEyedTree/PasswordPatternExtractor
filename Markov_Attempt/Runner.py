@@ -4,8 +4,6 @@ import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
 from unittest.mock import Mock, MagicMock
 import numpy as np
-import Markov_Attempt.treeForMarkov as tree
-import sys
 from pymongo import MongoClient
 import time
 import Password_Sorting.Password_Scoring as Scoring
@@ -235,12 +233,7 @@ Calling this function returns you the next prediction.
 def get_next():
     global current_layer
     global to_pop
-    a = current_layer
-    b = to_pop
     new_current = []
-
-    answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-
     if to_pop != []:
         return pop_max(to_pop)
     else:
