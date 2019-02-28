@@ -247,8 +247,9 @@ New Equation (seen below): 1.3^10(Fi)
 Added the final division to to scale the output between 1 and 0.
 '''
 def regex_rulecoverage(password):
+    formatted_password = password.strip()
     for regeX in regex_list:
-        if(re.match(regeX["_id"], password) is not None):
+        if(re.match(regeX["_id"], formatted_password) is not None):
             return (1.3**(10*normalizeRegexFrequency(regeX["_id"])))/13.7858491849
 
 
