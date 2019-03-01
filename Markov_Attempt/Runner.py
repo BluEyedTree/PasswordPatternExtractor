@@ -68,7 +68,7 @@ def read_common_substrings_into_memory(cutoff):
 association_rules = read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 
 
-def find_association_rules_for_string(password):
+def find_first_part_association_rules_for_string(password):
     assocation_rules_satisfied = []
 
     substrings = Utils.subStringFinder(password)
@@ -107,7 +107,7 @@ def add_assocation_rules_to_prob(currentPassword,  char_to_add):
 
         new_word = currentPassword + char_to_add
 
-        assocation_rules_satisfied = find_association_rules_for_string(new_word)
+        assocation_rules_satisfied = find_first_part_association_rules_for_string(new_word)
 
 
         for rule in assocation_rules_satisfied:
@@ -210,16 +210,21 @@ This was modified to also check if an association word should be added.
 def probabilityToChar(charbag, probabilities, current_word):
     char_probs = {}
 
+    #Below are the lines I started using to implement random insertion of association rules.
+    #For now leave it, and add better stats based approach later.
+    '''
 
-    assocation_rules_satisfied = find_association_rules_for_string(current_word)
+    assocation_rules_satisfied = find_first_part_association_rules_for_string(current_word)
     total_association_confidence = 0
+    add_substring_to_add_association_rule = False
     association_string_to_add = []
-
+    
     if(assocation_rules_satisfied != []):
         for rule in assocation_rules_satisfied:
-            if True:
-                pass
+            if (rule[0] in current_word and rule[1] not in current_word): #Want to guess it if the second part is not all ready in the word.
+                total_association_confidence += association_rules[rule[0]][rule[1]]
 
+    '''
     for i in enumerate(probabilities):
         if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
             char_probs[charbag[i[0]]] = i[1]
@@ -236,16 +241,17 @@ chars_to_use = "".join(chars_to_use)
 
 
 config.char_bag = list(pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use)
-#config.char_bag.append("tar")
-
-m = Markov.MarkovModel(config, smoothing='none', order=3)
+config.char_bag.append("tar")
+m = Markov.MarkovModel(config, smoothing='none', order=4)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
+
+
 print(m.freq_dict)
 #answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 #m.predict('', answer)
 
-
+#probabilityToChar(config.char_bag, {}, "c123")
 
 def pop_max(input_list):
     list1 = [input_list.pop(input_list.index(max(input_list)))]
