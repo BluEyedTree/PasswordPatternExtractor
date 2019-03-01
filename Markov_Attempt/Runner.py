@@ -7,6 +7,7 @@ import time
 import Password_Sorting.Password_Scoring as Scoring
 import string
 import math
+import Password_Sorting.Utils as Utils
 
 #TODO: Should paswords used for training have the start and end characters?
 def generate_dataset_from_textfile(textfile_path):
@@ -20,7 +21,7 @@ def generate_dataset_from_textfile(textfile_path):
             words_dict[word.strip()] = 1
 
     for key,value in words_dict.items():
-        list_to_return.append(("\t"+key,value))
+        list_to_return.append(("\t"+key+"\n",value))
 
 
     return list_to_return
@@ -32,14 +33,19 @@ def generate_dataset_from_textfile(textfile_path):
 training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
 
 def read_association_rules_into_memory(path__to_association_rules):
-    association_rules = []
+    association_rules = {}
     with open(path__to_association_rules) as f:
         lines = f.readlines()
     for line in lines:
         score = float(line.split(",")[1])
         first_word = line.split("->")[0]
         second_word = line.split("->")[1].split(",")[0]
-        association_rules.append((first_word,second_word,score))
+        if(first_word  in association_rules):
+            association_rules[first_word].append((second_word,score))
+
+        else:
+            association_rules[first_word] = [(second_word,score)]
+
 
     return association_rules
 
@@ -84,8 +90,23 @@ In a testing case a scale_value of 2 would double the probability
 def add_assocation_rules_to_prob(currentPassword,  char_to_add):
         association_prob = 0
         start_time = time.time()
-        for rule in association_rules:
-            new_word = currentPassword + char_to_add
+
+        assocation_rules_satisfied = []
+
+        new_word = currentPassword + char_to_add
+        substrings = Utils.subStringFinder(new_word)
+
+
+        for substring in substrings:
+            if(substring in association_rules):
+                a = association_rules[substring]
+                for second_part_of_association in association_rules[substring]:
+                    assocation_rules_satisfied.append((substring, second_part_of_association[0]))
+
+
+
+        for rule in assocation_rules_satisfied:
+
             #If you want to make this more stringent, then you should add the following to the if block:  and rule[1]  not in currentPassword
             #This would only increase the probability when the association rule is created with the addition of the letter. Instead of now where the probabilties are increased for every letter added after the creation of an association rule.
             if(rule[0] in new_word and rule[1] in new_word):
@@ -166,14 +187,14 @@ print ("REGEX check took", time.time() - start_time, "s to run")
 
 
 
-def calculate_weighted_average(markov_prob, association_prob, substring_prob, regex_prob, markov_weight, association_weight, substring_weight, regex_weight):
+def calculate_weighted_average(markov_prob, association_prob,  regex_prob, markov_weight, association_weight, regex_weight):
 
-    total_weight = association_weight + substring_weight + regex_weight + markov_weight
+    total_weight = association_weight  + regex_weight + markov_weight
     markov_contribution = markov_prob * markov_weight
     association_contribution = association_prob * association_weight
-    substring_contribution = substring_prob * substring_weight
+    #substring_contribution = substring_prob * substring_weight
     regex_contribution = regex_prob * regex_weight
-    weighted_average = (association_contribution + substring_contribution + regex_contribution + markov_contribution) / total_weight
+    weighted_average = (association_contribution + regex_contribution + markov_contribution) / total_weight
     return  weighted_average
 
 def probabilityToChar(charbag, probabilities):
@@ -196,9 +217,10 @@ chars_to_use = "".join(chars_to_use)
 config.char_bag = list(pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use)
 #config.char_bag.append("tar")
 
-m = Markov.MarkovModel(config, smoothing='none', order=2)
+m = Markov.MarkovModel(config, smoothing='none', order=3)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
+print(m.freq_dict)
 #answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
 #m.predict('', answer)
 
@@ -246,11 +268,11 @@ def get_next(max_pwd_length):
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
                 markov_prob = prediction[1]
-                substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
+                #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
                 association_prob = add_assocation_rules_to_prob(substring[1], prediction[0])
                 regex_prob = add_common_regex_to_prob(substring[1], prediction[0])
                 #Two lines below need to be run when weighted prob is working
-                weighted_average_probs = calculate_weighted_average(markov_prob, association_prob, substring_prob,regex_prob , 0.25, 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
+                weighted_average_probs = calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                 to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                 if len(to_add_word) <= max_pwd_length:
                     new_current.append((to_add_prob,to_add_word))
