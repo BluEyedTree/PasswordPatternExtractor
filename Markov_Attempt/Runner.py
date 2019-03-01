@@ -40,11 +40,12 @@ def read_association_rules_into_memory(path__to_association_rules):
         score = float(line.split(",")[1])
         first_word = line.split("->")[0]
         second_word = line.split("->")[1].split(",")[0]
+
         if(first_word  in association_rules):
-            association_rules[first_word].append((second_word,score))
+            association_rules[first_word][second_word] = score
 
         else:
-            association_rules[first_word] = [(second_word,score)]
+            association_rules[first_word] = {second_word:score}
 
 
     return association_rules
@@ -67,7 +68,18 @@ def read_common_substrings_into_memory(cutoff):
 association_rules = read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 
 
+def find_association_rules_for_string(password):
+    assocation_rules_satisfied = []
 
+    substrings = Utils.subStringFinder(password)
+
+
+    for substring in substrings:
+        if (substring in association_rules):
+            for second_part_of_association in association_rules[substring].keys():
+                assocation_rules_satisfied.append((substring, second_part_of_association))
+
+    return assocation_rules_satisfied
 '''
 This method modifies the probabilies returned by the markov model to include information about the known assocation rules
        
@@ -94,15 +106,8 @@ def add_assocation_rules_to_prob(currentPassword,  char_to_add):
         assocation_rules_satisfied = []
 
         new_word = currentPassword + char_to_add
-        substrings = Utils.subStringFinder(new_word)
 
-
-        for substring in substrings:
-            if(substring in association_rules):
-                a = association_rules[substring]
-                for second_part_of_association in association_rules[substring]:
-                    assocation_rules_satisfied.append((substring, second_part_of_association[0]))
-
+        assocation_rules_satisfied = find_association_rules_for_string(new_word)
 
 
         for rule in assocation_rules_satisfied:
@@ -197,8 +202,24 @@ def calculate_weighted_average(markov_prob, association_prob,  regex_prob, marko
     weighted_average = (association_contribution + regex_contribution + markov_contribution) / total_weight
     return  weighted_average
 
-def probabilityToChar(charbag, probabilities):
+'''
+Converts the probability vector into a char prediction dictionary.
+
+This was modified to also check if an association word should be added. 
+'''
+def probabilityToChar(charbag, probabilities, current_word):
     char_probs = {}
+
+
+    assocation_rules_satisfied = find_association_rules_for_string(current_word)
+    total_association_confidence = 0
+    association_string_to_add = []
+
+    if(assocation_rules_satisfied != []):
+        for rule in assocation_rules_satisfied:
+            if True:
+                pass
+
     for i in enumerate(probabilities):
         if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
             char_probs[charbag[i[0]]] = i[1]
@@ -243,7 +264,7 @@ def initialize_first_current_layer():
 
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
     m.predict("", answer)
-    prediction_dict = probabilityToChar(m.alphabet, answer)
+    prediction_dict = probabilityToChar(m.alphabet, answer, "")
 
 
     for key in prediction_dict.keys():
@@ -264,7 +285,7 @@ def get_next(max_pwd_length):
             answer = np.zeros((len(config.char_bag),), dtype=np.float64)
             to_pop.append(substring)
             m.predict(substring[1], answer)
-            prediction_dict =  probabilityToChar(m.alphabet, answer)
+            prediction_dict =  probabilityToChar(m.alphabet, answer, substring)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
                 markov_prob = prediction[1]
@@ -291,7 +312,6 @@ def generatePasswords():
                 prob = next_password[0][0]
                 formatted_password = next_password[0][1].strip()
                 passwords.append((prob,formatted_password))
-
     except:
         return passwords
 
