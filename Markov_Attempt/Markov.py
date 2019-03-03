@@ -129,9 +129,13 @@ class MarkovModel(object):
         assert len(pwd) <= self.order
         self.freq_dict[pwd] += freq
 
-    def truncate_context(self, context):
-        if len(context) >= self.order:
-            return context[-(self.order - 1):]
+    def truncate_context(self, context, order=None):
+        order_to_use = self.order
+        if order is not None:
+            order_to_use = order
+
+        if len(context) >= order_to_use:
+            return context[-(order_to_use - 1):]
         return context
 
     def probability_next_char(self, context, nc):
@@ -141,12 +145,17 @@ class MarkovModel(object):
         self.predict(context, probs)
         return probs[self.chars_to_index[nc]]
 
-    def predict(self, context, answer, truncate):
-
+    def predict(self, context, answer, order):
+        '''
         if truncate:
             return self.smoother.predict(self.truncate_context(context), answer)
         else:
             return self.smoother.predict(context, answer)
+        '''
+        return self.smoother.predict(self.truncate_context(context, order), answer)
+
+
+
 
     def saveModel(self, fname):
         logging.info('Saving model to %s', fname)

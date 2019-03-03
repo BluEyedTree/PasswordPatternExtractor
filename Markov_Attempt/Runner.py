@@ -33,8 +33,9 @@ def generate_dataset_from_textfile(textfile_path):
 
 #print(generate_dataset_from_textfile("/Users/thomasbekman/Desktop/pass.txt"))
 
-training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
+#training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/mySpace.txt")
 
+training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
 
 
 #Call not needed if using the new scoring function
@@ -299,8 +300,8 @@ def generatePasswords():
 print("----")
 print(generatePasswords())
 print("----")
-
 '''
+
 
 
 print("Starting test below")
@@ -319,11 +320,90 @@ print("Starting test below")
 #a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
 
 
+
 '''
+
+print("Starting large scale test")
+start_time = time.time()
+
+
+
+
+
+
+
 print("!!!!")
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 answer = a.predict("s34a")
 #charbag, probabilities, current_word
-print(probabilityToChar(a.charbag,answer,"Irrelavant arg"))
+print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567")
+#charbag, probabilities, current_word
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567a")
+#charbag, probabilities, current_word
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+
+answer = a.predict("567b")
+#charbag, probabilities, current_word
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567c")
+#charbag, probabilities, current_word
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567d")
+#charbag, probabilities, current_word
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+for i in list(string.printable):
+    answer = a.predict("567"+str(i))
+    # charbag, probabilities, current_word
+    print("Guess 567 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+for i in list(string.printable):
+    answer = a.predict("34"+str(i))
+    # charbag, probabilities, current_word
+    print("Guess 34 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+    answer = a.predict("hl"+str(i))
+    # charbag, probabilities, current_word
+    print("Guess hl " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+    answer = a.predict("uv"+str(i))
+    # charbag, probabilities, current_word
+    print("Guess uv " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+    answer = a.predict("uv"+str(i) +str(i))
+    # charbag, probabilities, current_word
+    print("Guess uv " + str(i) + str(i) +" " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+print ("Large Scale test took: ", time.time() - start_time, "s to run")
+
+
+
+answer = a.predict("34a")
+#charbag, probabilities, current_word
+print("Guess 34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("34")
+#charbag, probabilities, current_word
+print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+
+
 print("!!!!")
 '''
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+answer = a.predict("ts34a")
+#charbag, probabilities, current_word
+print("Guess 34a" + str(answer))

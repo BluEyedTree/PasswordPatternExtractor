@@ -6,11 +6,13 @@ import Password_Sorting.Utils as Utils
 import Markov_Attempt.pwd_guess as pg
 import Markov_Attempt.Utils as Mem_utils
 import numpy as np
+import math
 
 
 
 class Association_Prediction_Markov():
     def __init__(self, max_password_length, training_data, association_rule_path):
+        self.max_password_length = max_password_length
         self.freq_dict = collections.defaultdict(int)
         self.charbag = []
         self.association_rules = Mem_utils.read_association_rules_into_memory(association_rule_path)
@@ -21,10 +23,16 @@ class Association_Prediction_Markov():
         config = Mock()
         config.char_bag = ["\n", "\t"] #This value doesn't matter, its just a fake value given to intitialize markov models below
 
+        print("I'm the training data")
+        print(training_data)
+        print("I'm the training data")
+
         for i in range(2, max_password_length+1):
             m = Markov.MarkovModel(config, smoothing='none', order=i)
             m.train(training_data)
+            print("Finished training for order "+str(i))
             self.freq_dict = {**self.freq_dict, **m.freq_dict}
+
 
         print(self.freq_dict)
 
@@ -40,18 +48,65 @@ class Association_Prediction_Markov():
                 for second_part_of_association_rule in self.association_rules[substring].keys():
                     self.charbag.append(second_part_of_association_rule)
 
+    def probabilityToChar(self, probabilities):
+        char_probs = {}
+
+        # Below are the lines I started using to implement random insertion of association rules.
+        # For now leave it, and add better stats based approach later.
+        '''
+
+        assocation_rules_satisfied = find_first_part_association_rules_for_string(current_word)
+        total_association_confidence = 0
+        add_substring_to_add_association_rule = False
+        association_string_to_add = []
+
+        if(assocation_rules_satisfied != []):
+            for rule in assocation_rules_satisfied:
+                if (rule[0] in current_word and rule[1] not in current_word): #Want to guess it if the second part is not all ready in the word.
+                    total_association_confidence += association_rules[rule[0]][rule[1]]
+
+        '''
+        for i in enumerate(probabilities):
+            if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
+                char_probs[self.charbag[i[0]]] = i[1]
+        return char_probs
 
     def predict(self, password):
         self.update_charbag(password)
 
         config = Mock()
         config.char_bag = self.charbag
-        answer = np.zeros((len(self.charbag)), dtype=np.float64)
-        m = Markov.MarkovModel(config, order=3) #We are using this to make predictions. For predictions order does not matter
-        m.freq_dict = self.freq_dict
-        m.configure_smoother()
-        m.predict(password,answer,False)
-        return answer
+
+        answer_prob_dict = {}
+        for i in range(0, len(self.charbag)+1):
+            answer_prob_dict[i] = 0
+
+
+        for order_num in range(2, self.max_password_length):
+            answer = np.zeros((len(self.charbag)), dtype=np.float64)
+            m = Markov.MarkovModel(config, order=order_num) #We are using this to make predictions. For predictions order does not matter
+            m.freq_dict = self.freq_dict
+            m.configure_smoother()
+            m.predict(password,answer,False)
+
+            for i in enumerate(answer):
+
+                if i[1] > answer_prob_dict[i[0]]:
+                    answer_prob_dict[i[0]] = i[1]
+
+            answer_to_return = np.zeros((len(self.charbag)), dtype=np.float64)
+            for i in range(0, len(answer_to_return)):
+                answer_to_return[i] = answer_prob_dict[i]
+
+
+        return self.probabilityToChar(answer_to_return)
+
+
+
+
+
+
+
 
 
 
