@@ -88,8 +88,6 @@ class MarkovModel(object):
 
     def __init__(self, config, smoothing='none', order=2):
         self.alphabet = sorted(config.char_bag)
-        print("Im the alphabet")
-        print(self.alphabet)
         self.chars_to_index = dict([
             (c, i) for i, c in enumerate(self.alphabet)])
         self.smoothing = smoothing
@@ -97,7 +95,8 @@ class MarkovModel(object):
         self.order = order
         self.config = config
         self.smoother = None
-        assert pg.PASSWORD_END in self.alphabet
+        #Removed assert b/c it does not work with the association Markov (does this break anything??)
+        #assert pg.PASSWORD_END in self.alphabet
 
     def make_smoother(self):
         return self.SMOOTHING_MAP[self.smoothing](self.freq_dict, self.config)
@@ -136,8 +135,12 @@ class MarkovModel(object):
         self.predict(context, probs)
         return probs[self.chars_to_index[nc]]
 
-    def predict(self, context, answer):
-        return self.smoother.predict(self.truncate_context(context), answer)
+    def predict(self, context, answer, truncate):
+
+        if truncate:
+            return self.smoother.predict(self.truncate_context(context), answer)
+        else:
+            return self.smoother.predict(context, answer)
 
     def saveModel(self, fname):
         logging.info('Saving model to %s', fname)

@@ -2,12 +2,15 @@ import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
 from unittest.mock import Mock, MagicMock
 import numpy as np
-from pymongo import MongoClient
+
 import time
 import Password_Sorting.Password_Scoring as Scoring
 import string
 import math
 import Password_Sorting.Utils as Utils
+import Markov_Attempt.Association_Predicting_Markov as Association_markov
+import Markov_Attempt.Utils as mem_utils
+
 
 #TODO: Should paswords used for training have the start and end characters?
 def generate_dataset_from_textfile(textfile_path):
@@ -32,40 +35,11 @@ def generate_dataset_from_textfile(textfile_path):
 
 training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
 
-def read_association_rules_into_memory(path__to_association_rules):
-    association_rules = {}
-    with open(path__to_association_rules) as f:
-        lines = f.readlines()
-    for line in lines:
-        score = float(line.split(",")[1])
-        first_word = line.split("->")[0]
-        second_word = line.split("->")[1].split(",")[0]
 
-        if(first_word  in association_rules):
-            association_rules[first_word][second_word] = score
-
-        else:
-            association_rules[first_word] = {second_word:score}
-
-
-    return association_rules
-
-
-def read_common_substrings_into_memory(cutoff):
-    client = MongoClient('localhost', 27017)
-    db = client['Substring_Research']  # Might have to change this back to mydb
-    collection = db["substring_Length3to8"]
-    #Based on running extract_top_x_Percentage substring it was found that the top %1 of common substrings happen over 176
-    start_time = time.time()
-    substrings_cursor =  collection.find({"value":{"$gt": cutoff}})#Returns all items where the value is greater than 76
-    list_to_return = list(substrings_cursor)
-    print("Mongo", time.time() - start_time, "s to run")
-
-    return list_to_return
 
 #Call not needed if using the new scoring function
 #common_substrings = read_common_substrings_into_memory(200)
-association_rules = read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+association_rules = mem_utils.read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 
 
 def find_first_part_association_rules_for_string(password):
@@ -269,7 +243,7 @@ def initialize_first_current_layer():
     global  current_layer
 
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-    m.predict("", answer)
+    m.predict("", answer, True)
     prediction_dict = probabilityToChar(m.alphabet, answer, "")
 
 
@@ -290,7 +264,7 @@ def get_next(max_pwd_length):
         for substring in current_layer:
             answer = np.zeros((len(config.char_bag),), dtype=np.float64)
             to_pop.append(substring)
-            m.predict(substring[1], answer)
+            m.predict(substring[1], answer, True)
             prediction_dict =  probabilityToChar(m.alphabet, answer, substring)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
@@ -321,6 +295,23 @@ def generatePasswords():
     except:
         return passwords
 
+
 print("----")
 print(generatePasswords())
 print("----")
+
+
+print("Starting test below")
+
+#a = Association_Prediction_Markov.Association_Prediction_Markov(5)
+#a = Association_Prediction_Markov.Association_Prediction_Markov(5,training_data,"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
+
+#ab= Association_Predicting_Markov_2.test()
+#a = Association_Predicting_Markov_2.Association_Prediction_Markov()
+#a.update_charbag("1234567")
+#print(a.charbag)
+
+#a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
+
+
+a = Association_markov.Association_Prediction_Markov(5,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
