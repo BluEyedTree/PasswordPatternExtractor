@@ -262,7 +262,7 @@ def get_next(max_pwd_length):
     else:
         new_current = []
         for substring in current_layer:
-            answer = np.zeros((len(config.char_bag),), dtype=np.float64)
+            answer = np.zeros((len(config.char_bag)), dtype=np.float64)
             to_pop.append(substring)
             m.predict(substring[1], answer, True)
             prediction_dict =  probabilityToChar(m.alphabet, answer, substring)
@@ -295,13 +295,18 @@ def generatePasswords():
     except:
         return passwords
 
-
+'''
 print("----")
 print(generatePasswords())
 print("----")
 
+'''
+
 
 print("Starting test below")
+
+
+
 
 #a = Association_Prediction_Markov.Association_Prediction_Markov(5)
 #a = Association_Prediction_Markov.Association_Prediction_Markov(5,training_data,"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
@@ -314,4 +319,11 @@ print("Starting test below")
 #a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
 
 
-a = Association_markov.Association_Prediction_Markov(5,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+'''
+print("!!!!")
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+answer = a.predict("s34a")
+#charbag, probabilities, current_word
+print(probabilityToChar(a.charbag,answer,"Irrelavant arg"))
+print("!!!!")
+'''

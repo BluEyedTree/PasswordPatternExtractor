@@ -5,6 +5,7 @@ import string
 import Password_Sorting.Utils as Utils
 import Markov_Attempt.pwd_guess as pg
 import Markov_Attempt.Utils as Mem_utils
+import numpy as np
 
 
 
@@ -40,15 +41,18 @@ class Association_Prediction_Markov():
                     self.charbag.append(second_part_of_association_rule)
 
 
-    def predict(self, password, answer):
+    def predict(self, password):
         self.update_charbag(password)
+
         config = Mock()
         config.char_bag = self.charbag
-        m = Markov.MarkovModel(config, smoothing='none', order=3) #We are using this to make predictions. For predictions order does not matter
+        answer = np.zeros((len(self.charbag)), dtype=np.float64)
+        m = Markov.MarkovModel(config, order=3) #We are using this to make predictions. For predictions order does not matter
         m.freq_dict = self.freq_dict
+        m.configure_smoother()
         m.predict(password,answer,False)
+        return answer
 
-        #Now you
 
 
 

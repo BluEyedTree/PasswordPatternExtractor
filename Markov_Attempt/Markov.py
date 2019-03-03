@@ -118,6 +118,12 @@ class MarkovModel(object):
             self.train_on_pwd(pwd, freq)
         self.smoother = self.make_smoother()
 
+    '''
+    Only needs to be called in the case of predicting the association rules. 
+    '''
+    def configure_smoother(self):
+        self.smoother = self.make_smoother()
+
     def increment(self, pwd, freq):
         assert freq != 0
         assert len(pwd) <= self.order
