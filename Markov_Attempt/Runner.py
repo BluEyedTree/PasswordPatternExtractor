@@ -404,6 +404,6 @@ print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 print("!!!!")
 '''
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-answer = a.predict("ts34a")
+answer = a.predict("ts34a56")
 #charbag, probabilities, current_word
-print("Guess 34a" + str(answer))
+print("Guess 34a56" + str(answer))

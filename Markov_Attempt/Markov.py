@@ -146,12 +146,7 @@ class MarkovModel(object):
         return probs[self.chars_to_index[nc]]
 
     def predict(self, context, answer, order):
-        '''
-        if truncate:
-            return self.smoother.predict(self.truncate_context(context), answer)
-        else:
-            return self.smoother.predict(context, answer)
-        '''
+
         return self.smoother.predict(self.truncate_context(context, order), answer)
 
 

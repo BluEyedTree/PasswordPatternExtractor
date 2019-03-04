@@ -51,21 +51,6 @@ class Association_Prediction_Markov():
     def probabilityToChar(self, probabilities):
         char_probs = {}
 
-        # Below are the lines I started using to implement random insertion of association rules.
-        # For now leave it, and add better stats based approach later.
-        '''
-
-        assocation_rules_satisfied = find_first_part_association_rules_for_string(current_word)
-        total_association_confidence = 0
-        add_substring_to_add_association_rule = False
-        association_string_to_add = []
-
-        if(assocation_rules_satisfied != []):
-            for rule in assocation_rules_satisfied:
-                if (rule[0] in current_word and rule[1] not in current_word): #Want to guess it if the second part is not all ready in the word.
-                    total_association_confidence += association_rules[rule[0]][rule[1]]
-
-        '''
         for i in enumerate(probabilities):
             if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
                 char_probs[self.charbag[i[0]]] = i[1]
@@ -87,7 +72,7 @@ class Association_Prediction_Markov():
             m = Markov.MarkovModel(config, order=order_num) #We are using this to make predictions. For predictions order does not matter
             m.freq_dict = self.freq_dict
             m.configure_smoother()
-            m.predict(password,answer,False)
+            m.predict(password,answer,order_num)
 
             for i in enumerate(answer):
 
