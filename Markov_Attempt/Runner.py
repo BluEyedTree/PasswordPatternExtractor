@@ -24,7 +24,7 @@ def generate_dataset_from_textfile(textfile_path):
             words_dict[word.strip()] = 1
 
     for key,value in words_dict.items():
-        list_to_return.append(("\t"+key+"\n",value))
+        list_to_return.append(("\t"+key,value))
 
 
     return list_to_return
@@ -216,7 +216,6 @@ chars_to_use = "".join(chars_to_use)
 
 
 config.char_bag = list(pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use)
-config.char_bag.append("tar")
 m = Markov.MarkovModel(config, smoothing='none', order=4)
 #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
 m.train(training_data)
@@ -253,6 +252,7 @@ def initialize_first_current_layer():
 '''
 Calling this function returns you the next prediction. 
 '''
+association_prediction_markov = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 
 def get_next(max_pwd_length):
     global current_layer
@@ -266,7 +266,18 @@ def get_next(max_pwd_length):
             answer = np.zeros((len(config.char_bag)), dtype=np.float64)
             to_pop.append(substring)
             m.predict(substring[1], answer)
-            prediction_dict =  probabilityToChar(m.alphabet, answer, substring)
+            print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
+            print(substring)
+            print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
+            association_predictions = association_prediction_markov.predict(substring[1])
+            print("*****************I'm the association predictions*****************")
+            print(association_predictions)
+            print("*****************I'm the association predictions*****************")
+            prediction_dict =  {**probabilityToChar(m.alphabet, answer, substring), **association_predictions}
+            #prediction_dict = probabilityToChar(m.alphabet, answer, substring)
+            print("-------Prediction dict printout-------")
+            print(prediction_dict)
+            print("-------Prediction dict printout-------")
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
                 markov_prob = prediction[1]
@@ -276,31 +287,39 @@ def get_next(max_pwd_length):
                 #Two lines below need to be run when weighted prob is working
                 weighted_average_probs = calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                 to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
-                if len(to_add_word) <= max_pwd_length:
+                if ((len(to_add_word) <= max_pwd_length+2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
                     new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
     return pop_max(to_pop)
 
 
 #TODO: This probably needs to write to the mongoDB, or batch write a text file. All passwords should probably be made before the testing stage.
+#TODO: REMOVE THIS COMMENT LATER
 initialize_first_current_layer()
 def generatePasswords():
     passwords = []
+    #print("ran once")
+    next_password = get_next(7)  # Next password might not be the complete guess
+    if "\n" in next_password[0][1]:
+        prob = next_password[0][0]
+        formatted_password = next_password[0][1]
+        passwords.append((prob, formatted_password))
     try:
         while True:
             next_password = get_next(7) #Next password might not be the complete guess
             if "\n" in next_password[0][1]:
                 prob = next_password[0][0]
-                formatted_password = next_password[0][1].strip()
+                formatted_password = next_password[0][1]
                 passwords.append((prob,formatted_password))
     except:
+
         return passwords
 
-'''
+
 print("----")
 print(generatePasswords())
 print("----")
-'''
+
 
 
 
@@ -403,7 +422,10 @@ print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 print("!!!!")
 '''
+
+'''
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 answer = a.predict("3456")
 #charbag, probabilities, current_word
 print("Guess 34" + str(answer))
+'''

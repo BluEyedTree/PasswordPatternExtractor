@@ -7,6 +7,7 @@ import Markov_Attempt.pwd_guess as pg
 import Markov_Attempt.Utils as Mem_utils
 import numpy as np
 import math
+from multiprocessing import Process, Manager
 
 
 
@@ -16,25 +17,36 @@ class Association_Prediction_Markov():
         self.freq_dict = collections.defaultdict(int)
         self.charbag = []
         self.association_rules = Mem_utils.read_association_rules_into_memory(association_rule_path)
+        jobs = []
+        print("test")
+        #A multiprocess approach to training each markov model.
+        #We create a markov model for each order (from 2 to maxPassLength-1) then combine all their freq_dicts
+        manager = Manager()
+        freq_dict = manager.list()
+        for i in range(2, max_password_length+1):
+            p = Process(target=self.train_markovModel, args=(training_data, i, freq_dict))
+            jobs.append(p)
+            p.start()
+            print("Process: "+ str(i)+ "made.")
+        for proc in jobs:
+            proc.join()
 
+        for dict in freq_dict:
+            self.freq_dict = {**self.freq_dict, **dict}
 
-        #Now we create a massive freq dict with all the order from 2 to max. This is necessary for predictions.
+        #print("-----")
+        #print(self.freq_dict)
+        #print("-----")
 
+    #TODO: FIgure out how to make dics work, so you don't have to spend time joining lists later.
+    def train_markovModel(self, training_data,  order, dict_to_write_to):
         config = Mock()
         config.char_bag = ["\n", "\t"] #This value doesn't matter, its just a fake value given to intitialize markov models below
-
-        print("I'm the training data")
-        print(training_data)
-        print("I'm the training data")
-
-        for i in range(2, max_password_length+1):
-            m = Markov.MarkovModel(config, smoothing='none', order=i)
-            m.train(training_data)
-            print("Finished training for order "+str(i))
-            self.freq_dict = {**self.freq_dict, **m.freq_dict}
+        m = Markov.MarkovModel(config, smoothing='none', order=order)
+        m.train(training_data)
+        dict_to_write_to.append(m.freq_dict)
 
 
-        print(self.freq_dict)
 
     '''
     The charbag is updated for every password. 
@@ -46,6 +58,11 @@ class Association_Prediction_Markov():
         for substring in substrings:
             if substring in self.association_rules:
                 for second_part_of_association_rule in self.association_rules[substring].keys():
+                    if(second_part_of_association_rule == "123"):
+                        print("I go along with 123")
+                        print(substring)
+
+                        print("I go along with 123")
 
                     '''
                     first_string_end_position = password.find(substring[0]) + len(substring[0]) - 1  # The first word in the association rules
