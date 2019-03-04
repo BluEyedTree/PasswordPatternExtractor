@@ -244,7 +244,7 @@ def initialize_first_current_layer():
     global  current_layer
 
     answer = np.zeros((len(config.char_bag),), dtype=np.float64)
-    m.predict("", answer, True)
+    m.predict("", answer)
     prediction_dict = probabilityToChar(m.alphabet, answer, "")
 
 
@@ -265,7 +265,7 @@ def get_next(max_pwd_length):
         for substring in current_layer:
             answer = np.zeros((len(config.char_bag)), dtype=np.float64)
             to_pop.append(substring)
-            m.predict(substring[1], answer, True)
+            m.predict(substring[1], answer)
             prediction_dict =  probabilityToChar(m.alphabet, answer, substring)
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
@@ -404,6 +404,6 @@ print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 print("!!!!")
 '''
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-answer = a.predict("ts34a56")
+answer = a.predict("3456")
 #charbag, probabilities, current_word
-print("Guess 34a56" + str(answer))
+print("Guess 34" + str(answer))

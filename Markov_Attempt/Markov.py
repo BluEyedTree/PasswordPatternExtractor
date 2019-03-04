@@ -145,7 +145,7 @@ class MarkovModel(object):
         self.predict(context, probs)
         return probs[self.chars_to_index[nc]]
 
-    def predict(self, context, answer, order):
+    def predict(self, context, answer, order = None):
 
         return self.smoother.predict(self.truncate_context(context, order), answer)
 
