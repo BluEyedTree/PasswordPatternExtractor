@@ -266,18 +266,23 @@ def get_next(max_pwd_length):
             answer = np.zeros((len(config.char_bag)), dtype=np.float64)
             to_pop.append(substring)
             m.predict(substring[1], answer)
-            print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
-            print(substring)
-            print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
+            #print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
+            #print(substring)
+            #print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
             association_predictions = association_prediction_markov.predict(substring[1])
-            print("*****************I'm the association predictions*****************")
-            print(association_predictions)
-            print("*****************I'm the association predictions*****************")
+            if(association_predictions != {}):
+                print("================")
+                print(substring)
+                print(association_predictions)
+                print("================")
+            #print("*****************I'm the association predictions*****************")
+            #print(association_predictions)
+            #print("*****************I'm the association predictions*****************")
             prediction_dict =  {**probabilityToChar(m.alphabet, answer, substring), **association_predictions}
             #prediction_dict = probabilityToChar(m.alphabet, answer, substring)
-            print("-------Prediction dict printout-------")
-            print(prediction_dict)
-            print("-------Prediction dict printout-------")
+            #print("-------Prediction dict printout-------")
+            #print(prediction_dict)
+            #print("-------Prediction dict printout-------")
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
                 markov_prob = prediction[1]
@@ -315,11 +320,11 @@ def generatePasswords():
 
         return passwords
 
-
+'''
 print("----")
 print(generatePasswords())
 print("----")
-
+'''
 
 
 
@@ -328,8 +333,11 @@ print("Starting test below")
 
 
 
-#a = Association_Prediction_Markov.Association_Prediction_Markov(5)
-#a = Association_Prediction_Markov.Association_Prediction_Markov(5,training_data,"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt")
+#a = Association_markov.Association_Prediction_Markov(5)
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+print("/////")
+print(a.predict("\t3456712"))
+print("/////")
 
 #ab= Association_Predicting_Markov_2.test()
 #a = Association_Predicting_Markov_2.Association_Prediction_Markov()
