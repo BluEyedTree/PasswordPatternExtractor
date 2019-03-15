@@ -70,22 +70,27 @@ class Association_Prediction_Markov():
     '''
     def update_charbag(self, password):
         self.charbag = []
+        seen = set()
+
         substrings = Utils.subStringFinder(password)
         for substring in substrings:
             if substring in self.association_rules:
                 for second_part_of_association_rule in self.association_rules[substring].keys():
 
-
                     if second_part_of_association_rule not in password: #We dont want to double up on adding the second part of association rules.
-                        self.charbag.append(second_part_of_association_rule)
+                        if second_part_of_association_rule not in seen:
+                            self.charbag.append(second_part_of_association_rule)
+                            seen.add(second_part_of_association_rule)
 
                     if second_part_of_association_rule in password: #Deals with the case where the second part of the association is present, but exists before the first part. So its not a true association rule.
                         first_string_end_position = password.find(substring[0]) + len(substring[0]) - 1
                         second_string_start_position = password.rfind(second_part_of_association_rule)
 
                         if (second_string_start_position < first_string_end_position): #Second part occurs before the first.
-                            self.charbag.append(second_part_of_association_rule)
-
+                            if second_part_of_association_rule not in seen:
+                                self.charbag.append(second_part_of_association_rule)
+                                seen.add(second_part_of_association_rule)
+        self.charbag = sorted(self.charbag)
 
     def probabilityToChar(self, probabilities):
         char_probs = {}
@@ -99,6 +104,8 @@ class Association_Prediction_Markov():
 
     def predict(self, password):
         self.update_charbag(password)
+        if(self.charbag == []):
+            return {}
 
         len_shortest_string_in_charbag = len(min(self.charbag, key=len))
 
@@ -106,7 +113,7 @@ class Association_Prediction_Markov():
         config.char_bag = self.charbag
 
         answer_prob_dict = {}
-        for i in range(0, len(self.charbag)+1):
+        for i in range(0, len(self.charbag)):
             answer_prob_dict[i] = 0
 
         for order_num in range(len_shortest_string_in_charbag+1, self.max_password_length):
