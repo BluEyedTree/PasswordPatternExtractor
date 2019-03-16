@@ -41,7 +41,9 @@ training_data = generate_dataset_from_textfile("/Users/thomasbekman/Documents/Re
 #Call not needed if using the new scoring function
 #common_substrings = read_common_substrings_into_memory(200)
 association_rules = mem_utils.read_association_rules_into_memory("/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-
+print("!!!!!!!!!")
+print(association_rules)
+print("!!!!!!!!!")
 
 def find_first_part_association_rules_for_string(password):
     assocation_rules_satisfied = []
@@ -252,8 +254,9 @@ def initialize_first_current_layer():
 '''
 Calling this function returns you the next prediction. 
 '''
-association_prediction_markov = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-
+#TODO: The current method creates a lot of duplicates
+association_prediction_markov = Association_markov.Association_Prediction_Markov(10,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+association_guesses = []
 def get_next(max_pwd_length):
     global current_layer
     global to_pop
@@ -264,25 +267,23 @@ def get_next(max_pwd_length):
         new_current = []
         for substring in current_layer:
             answer = np.zeros((len(config.char_bag)), dtype=np.float64)
+            #if not any(substring in word for word in to_pop):   An initial attempt to remove duplicates, but it doesn't really work as the two markov models arrive at the same conclusions independently
             to_pop.append(substring)
+
             m.predict(substring[1], answer)
-            #print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
-            #print(substring)
-            #print("^^^^^^^^^I'm the substring^^^^^^^^^^^^")
             association_predictions = association_prediction_markov.predict(substring[1])
-            if(association_predictions != {}):
+
+            '''
+            for prediction in association_predictions:
+                association_guess = substring[1] + prediction[0]
+                association_guesses.append(association_guess)
+            if (association_predictions != {}):
                 print("================")
                 print(substring)
                 print(association_predictions)
                 print("================")
-            #print("*****************I'm the association predictions*****************")
-            #print(association_predictions)
-            #print("*****************I'm the association predictions*****************")
+            '''
             prediction_dict =  {**probabilityToChar(m.alphabet, answer, substring), **association_predictions}
-            #prediction_dict = probabilityToChar(m.alphabet, answer, substring)
-            #print("-------Prediction dict printout-------")
-            #print(prediction_dict)
-            #print("-------Prediction dict printout-------")
             for prediction in prediction_dict.items():
                 to_add_word = substring[1] + prediction[0]
                 markov_prob = prediction[1]
@@ -293,6 +294,7 @@ def get_next(max_pwd_length):
                 weighted_average_probs = calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                 to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                 if ((len(to_add_word) <= max_pwd_length+2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
+                    #if not any(to_add_word in  word for word in new_current): SAME ATTEMPT AT removing duplicates as shown above
                     new_current.append((to_add_prob,to_add_word))
     current_layer = new_current
     return pop_max(to_pop)
@@ -304,30 +306,33 @@ initialize_first_current_layer()
 def generatePasswords():
     passwords = []
     #print("ran once")
+    '''
     next_password = get_next(7)  # Next password might not be the complete guess
     if "\n" in next_password[0][1]:
         prob = next_password[0][0]
         formatted_password = next_password[0][1]
         passwords.append((prob, formatted_password))
+    '''
     try:
         while True:
-            next_password = get_next(7) #Next password might not be the complete guess
+            next_password = get_next(12) #Next password might not be the complete guess
             if "\n" in next_password[0][1]:
                 prob = next_password[0][0]
-                formatted_password = next_password[0][1]
+                formatted_password = next_password[0][1].strip()
                 passwords.append((prob,formatted_password))
     except:
+        for i in passwords:
+            print(i)
+        #return passwords
 
-        return passwords
 
-'''
 print("----")
 print(generatePasswords())
 print("----")
+
+
+
 '''
-
-
-
 print("Starting test below")
 
 
@@ -348,7 +353,7 @@ print("/////")
 
 
 
-'''
+
 
 print("Starting large scale test")
 start_time = time.time()
@@ -356,34 +361,39 @@ start_time = time.time()
 
 
 
+'''
 
-
-
+'''
 print("!!!!")
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-answer = a.predict("s34a")
-#charbag, probabilities, current_word
-print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
-answer = a.predict("567")
+c = a.freq_dict
+
+#answer = a.predict("s34a")
 #charbag, probabilities, current_word
-print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+#print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+#answer = a.predict("567")
+#charbag, probabilities, current_word
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 answer = a.predict("567a")
 #charbag, probabilities, current_word
-print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 
 answer = a.predict("567b")
 #charbag, probabilities, current_word
-print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
-answer = a.predict("567c")
+answer = a.predict("\tv")
 #charbag, probabilities, current_word
-print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 answer = a.predict("567d")
+'''
 #charbag, probabilities, current_word
+'''
 print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 for i in list(string.printable):
@@ -429,11 +439,12 @@ print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
 
 
 print("!!!!")
-'''
 
-'''
+
+
 a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
 answer = a.predict("3456")
 #charbag, probabilities, current_word
 print("Guess 34" + str(answer))
+
 '''
