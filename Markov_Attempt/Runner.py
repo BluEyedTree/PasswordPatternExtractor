@@ -165,7 +165,7 @@ def add_common_regex_to_prob(currentPassword, char_to_add):
 print("test Regex_to_prob")
 start_time = time.time()
 #add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
-#print ("REGEX check took", time.time() - start_time, "s to run")
+print ("REGEX check took", time.time() - start_time, "s to run")
 
 
 
@@ -326,6 +326,9 @@ def generatePasswords():
             print(i)
         #return passwords
 
+
+
+
 '''
 print("----")
 print(generatePasswords())
@@ -334,8 +337,7 @@ print("----")
 
 
 print("------test------")
-for i in generatePasswords():
-    print(i)
+
 
 '''
 print("Starting test below")
