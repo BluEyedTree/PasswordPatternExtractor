@@ -98,7 +98,7 @@ def add_assocation_rules_to_prob(currentPassword,  char_to_add):
                 if(second_string_start_position > first_string_end_position):
                     association_prob = Scoring.association_rule_coverage(new_word)
 
-        print("Association check took", time.time() - start_time, "s to run")
+        #print("Association check took", time.time() - start_time, "s to run")
         return association_prob
 
 
@@ -126,7 +126,7 @@ def add_common_substring_to_prob(currentPassword, char_to_add,  cutoff):
 
         new_word = currentPassword + char_to_add
         substring_prob = Scoring.common_substring_coverage(new_word, cutoff)
-        print("Substring Time:", time.time() - start_time, "s to run")
+        #print("Substring Time:", time.time() - start_time, "s to run")
 
         return substring_prob
 
@@ -155,7 +155,7 @@ def add_common_regex_to_prob(currentPassword, char_to_add):
     new_word = currentPassword + char_to_add
     new_word = new_word.strip()
     regex_prob = Scoring.regex_rulecoverage(new_word)
-    print("Regex Time:", time.time() - start_time, "s to run")
+   # print("Regex Time:", time.time() - start_time, "s to run")
 
     return regex_prob
 
@@ -165,7 +165,7 @@ def add_common_regex_to_prob(currentPassword, char_to_add):
 print("test Regex_to_prob")
 start_time = time.time()
 #add_common_regex_to_prob("Pass0034",fake_prob_vector, 0.25, 0.2)
-print ("REGEX check took", time.time() - start_time, "s to run")
+#print ("REGEX check took", time.time() - start_time, "s to run")
 
 
 
@@ -272,7 +272,7 @@ def get_next(max_pwd_length):
 
             m.predict(substring[1], answer)
             association_predictions = association_prediction_markov.predict(substring[1])
-
+            #association_predictions = {}
             '''
             for prediction in association_predictions:
                 association_guess = substring[1] + prediction[0]
@@ -319,18 +319,23 @@ def generatePasswords():
             if "\n" in next_password[0][1]:
                 prob = next_password[0][0]
                 formatted_password = next_password[0][1].strip()
-                passwords.append((prob,formatted_password))
+                yield formatted_password
+                #passwords.append((prob,formatted_password))
     except:
         for i in passwords:
             print(i)
         #return passwords
 
-
+'''
 print("----")
 print(generatePasswords())
 print("----")
+'''
 
 
+print("------test------")
+for i in generatePasswords():
+    print(i)
 
 '''
 print("Starting test below")
