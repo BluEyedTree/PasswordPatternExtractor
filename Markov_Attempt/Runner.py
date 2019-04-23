@@ -14,10 +14,16 @@ import collections
 
 class Create_Password_Guesses(collections.Iterator):
 
-    def __init__(self, training_data_path, association_rule_path, char_markov_order, char_assocation_order, max_pwd_len):
-        self.training_data = self.generate_dataset_from_textfile(training_data_path)
-        self.association_rule_path = association_rule_path
-        self.association_rules = mem_utils.read_association_rules_into_memory(association_rule_path) #This requires a textfile
+    def __init__(self, training_data_path=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None):
+
+        if  training_data_path != None:
+            self.training_data = self.generate_dataset_from_textfile(training_data_path)
+
+        if association_rule_path != None:
+            self.association_rule_path = association_rule_path
+            self.association_rules = mem_utils.read_association_rules_into_memory(association_rule_path) #This requires a textfile
+
+
         self.max_pwd_len = max_pwd_len
         self.config = Mock()
         white_space_chars = set(string.whitespace)
@@ -27,9 +33,12 @@ class Create_Password_Guesses(collections.Iterator):
         self.current_layer = []
         self.to_pop = []
         self.config.char_bag = list(pg.PASSWORD_END + pg.PASSWORD_START + chars_to_use)
-        self.m = Markov.MarkovModel(self.config, smoothing='none', order=char_markov_order)
-        self.m.train(self.training_data)
-        self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path)
+
+        if char_markov_order != None:
+            self.m = Markov.MarkovModel(self.config, smoothing='none', order=char_markov_order)
+            self.m.train(self.training_data)
+            self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path)
+
         self.association_guesses = []
         self.initialize_first_current_layer()
 
@@ -49,6 +58,16 @@ class Create_Password_Guesses(collections.Iterator):
                 # passwords.append((prob,formatted_password))
         except:
             raise StopIteration
+
+
+    def set_values(self, training_data, source_char_markov_model, source_injection_markov_model, association_rules=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None, chars_to_use_in=None):
+        self.training_data = training_data
+        self.association_rule_path = association_rule_path
+        self.association_rules = association_rules  # This requires a textfile
+        self.m = source_char_markov_model
+        #self.m.train(self.training_data)
+        self.association_prediction_markov = source_injection_markov_model
+
 
 
 
@@ -504,4 +523,13 @@ for i in Create_Password_Guesses("/Users/thomasbekman/Documents/Research/Passwor
     print(i)
 '''
 
+tom =Create_Password_Guesses(
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt",
+"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
+11)
 
+
+
+
+for i in tom.generatePasswords():
+    print(i)
