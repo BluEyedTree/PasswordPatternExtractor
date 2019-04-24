@@ -275,7 +275,7 @@ def main(filePath):
 
             p1_score = password_score_based_on_length(line)
             p2_score = common_substring_coverage(line)
-            p3_score = association_rule_coverage(line)
+            p3_score = 0#association_rule_coverage(line) #TODO: Fix me
             p4_score = regex_rulecoverage(line)
             '''
             print(line)

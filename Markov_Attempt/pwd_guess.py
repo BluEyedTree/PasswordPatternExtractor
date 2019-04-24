@@ -40,7 +40,7 @@ from keras.callbacks import TensorBoard
 
 from sklearn.utils import shuffle
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
 from enum import IntEnum
 
 #import pylru

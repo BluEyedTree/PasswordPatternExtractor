@@ -8,7 +8,7 @@ from unittest.mock import Mock, MagicMock
 
 import string
 import numpy as np
-import pwd_guess as pg
+import Markov_Attempt.pwd_guess as pg
 import logging
 
 PASSWORD_START = '\t'
@@ -37,7 +37,7 @@ class NoSmoothingSmoother(object):
             ngram = ctx_arg + next_char
             freq = self.freq(ngram)
             answer[i] += freq
-            total_sum += freq
+            total_sum  += freq
         return total_sum
 
     def _predict(self, ctx_arg, answer):

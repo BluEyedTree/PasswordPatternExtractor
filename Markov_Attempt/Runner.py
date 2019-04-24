@@ -14,7 +14,8 @@ import collections
 
 class Create_Password_Guesses(collections.Iterator):
 
-    def __init__(self, training_data_path=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None):
+    def __init__(self, training_data_path=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None, initilize_here = False):
+        self.char_markov_order = char_markov_order
 
         if  training_data_path != None:
             self.training_data = self.generate_dataset_from_textfile(training_data_path)
@@ -34,13 +35,17 @@ class Create_Password_Guesses(collections.Iterator):
         self.to_pop = []
         self.config.char_bag = list(pg.PASSWORD_END + pg.PASSWORD_START + chars_to_use)
 
-        if char_markov_order != None:
-            self.m = Markov.MarkovModel(self.config, smoothing='none', order=char_markov_order)
+        if initilize_here:
+            self.m = Markov.MarkovModel(self.config, smoothing='none', order= self.char_markov_order)
             self.m.train(self.training_data)
-            self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path)
+            self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=True)
+            self.initialize_first_current_layer()
 
+        else:
+            self.m = None
+            self.association_prediction_markov = None
         self.association_guesses = []
-        self.initialize_first_current_layer()
+
 
 
     def __iter__(self):
@@ -60,13 +65,28 @@ class Create_Password_Guesses(collections.Iterator):
             raise StopIteration
 
 
-    def set_values(self, training_data, source_char_markov_model, source_injection_markov_model, association_rules=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None, chars_to_use_in=None):
+    def set_values(self, training_data, source_char_markov_model, source_injection_markov_model, association_rules=None, association_rule_path=None):
         self.training_data = training_data
         self.association_rule_path = association_rule_path
-        self.association_rules = association_rules  # This requires a textfile
-        self.m = source_char_markov_model
+        self.association_rules = association_rules
+
+        #Create Local char Markov
+        self.m = Markov.MarkovModel(self.config, smoothing='none', order=self.char_markov_order)
+        self.m.freq_dict = source_char_markov_model.freq_dict
+        self.m.config = source_char_markov_model.config
+        self.m.alphabet = source_char_markov_model.alphabet
+        self.m.configure_smoother()
         #self.m.train(self.training_data)
-        self.association_prediction_markov = source_injection_markov_model
+
+
+        self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=False)
+        self.association_prediction_markov.freq_dict = source_injection_markov_model.freq_dict
+        #self.association_prediction_markov.config = source_injection_markov_model.config
+        #self.association_prediction_markov.alphabet = source_injection_markov_model.alphabet
+        self.current_layer = []
+        self.to_pop = []
+        self.initialize_first_current_layer()
+
 
 
 
@@ -304,6 +324,7 @@ class Create_Password_Guesses(collections.Iterator):
     #to_pop = []
     def initialize_first_current_layer(self):
         answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
+        a= self.m
         self.m.predict("", answer)
         prediction_dict = self.probabilityToChar(self.m.alphabet, answer, "")
 
@@ -346,10 +367,10 @@ class Create_Password_Guesses(collections.Iterator):
                     to_add_word = substring[1] + prediction[0]
                     markov_prob = prediction[1]
                     #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
-                    association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
+                    #association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
                     regex_prob = self.add_common_regex_to_prob(substring[1], prediction[0])
                     #Two lines below need to be run when weighted prob is working
-                    weighted_average_probs = self.calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
+                    weighted_average_probs = self.calculate_weighted_average(markov_prob, 0 ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
                     to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                     if ((len(to_add_word) <= self.max_pwd_len +2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
                         #if not any(to_add_word in  word for word in new_current): SAME ATTEMPT AT removing duplicates as shown above

@@ -12,31 +12,45 @@ from multiprocessing import Process, Manager
 
 
 class Association_Prediction_Markov():
-    def __init__(self, max_password_length, training_data, association_rule_path):
+    def __init__(self, max_password_length, training_data, association_rule_path, do_train=False):
+        self.training_data = training_data
         self.max_password_length = max_password_length
         self.freq_dict = collections.defaultdict(int)
         self.charbag = []
         self.association_rules = Mem_utils.read_association_rules_into_memory(association_rule_path)
-        jobs = []
-        print("test")
 
-        #Non-Parallel approach for debugging
+
+
+        if(do_train):
+            self.create_composite_freq_dict()
+
+
+
+
+
+
+    '''
+    Creates the freq dict of all different order markov models
+    '''
+    def create_composite_freq_dict(self):
+        # Non-Parallel approach for debugging
         config = Mock()
         config.char_bag = ["\n", "\t"]
-        for i in range(2, max_password_length + 1):
+        for i in range(2, self.max_password_length + 1):
             m = Markov.MarkovModel(config, smoothing='none', order=i)
-            m.train(training_data)
+            m.train(self.training_data)
             print("Finished training for order " + str(i))
             self.freq_dict = {**self.freq_dict, **m.freq_dict}
 
         print(self.freq_dict)
 
-
-
-
+    '''
+   
+    jobs = []
+     
     #A multiprocess approach to training each markov model.
     #We create a markov model for each order (from 2 to maxPassLength-1) then combine all their freq_dicts
-    '''
+
         manager = Manager()
         freq_dict = manager.list()
         for i in range(2, max_password_length+1):
@@ -49,10 +63,13 @@ class Association_Prediction_Markov():
 
         for dict in freq_dict:
             self.freq_dict = {**self.freq_dict, **dict}
-        '''
+
         #print("-----")
         #print(self.freq_dict)
         #print("-----")
+    '''
+
+
 
     #TODO: FIgure out how to make dics work, so you don't have to spend time joining lists later.
     def train_markovModel(self, training_data,  order, dict_to_write_to):
@@ -134,16 +151,5 @@ class Association_Prediction_Markov():
 
 
         return self.probabilityToChar(answer_to_return)
-
-
-
-
-
-
-
-
-
-
-
 
 #This needs to be on the bottom due to cyclic import with Runner.py
