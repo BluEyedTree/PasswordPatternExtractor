@@ -99,15 +99,17 @@ class Create_Password_Guesses(collections.Iterator):
         list_to_return = []
         text_file = open(textfile_path,"r")
         for word in text_file:
+            word = word.strip()
             if word in words_dict:
-                words_dict[word.strip()] += 1
+                words_dict[word] += 1
             else:
-                words_dict[word.strip()] = 1
+                words_dict[word] = 1
 
         for key,value in words_dict.items():
             list_to_return.append(("\t"+key,value))
 
-
+        print("list to return")
+        print(list_to_return)
         return list_to_return
 
 
