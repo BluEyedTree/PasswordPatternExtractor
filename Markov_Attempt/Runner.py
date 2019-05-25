@@ -39,6 +39,7 @@ class Create_Password_Guesses(collections.Iterator):
             self.m = Markov.MarkovModel(self.config, smoothing='none', order= self.char_markov_order)
             self.m.train(self.training_data)
             self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=True)
+            self.association_prediction_markov.train()
             self.initialize_first_current_layer()
 
         else:
@@ -108,8 +109,8 @@ class Create_Password_Guesses(collections.Iterator):
         for key,value in words_dict.items():
             list_to_return.append(("\t"+key,value))
 
-        print("list to return")
-        print(list_to_return)
+        #print("list to return")
+        #print(list_to_return)
         return list_to_return
 
 
@@ -340,7 +341,6 @@ class Create_Password_Guesses(collections.Iterator):
     #association_prediction_markov = Association_markov.Association_Prediction_Markov(10,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
     #association_guesses = []
     def get_next(self):
-
         new_current = []
         if self.to_pop != []:
             return self.pop_max(self.to_pop)
@@ -350,29 +350,18 @@ class Create_Password_Guesses(collections.Iterator):
                 answer = np.zeros((len(self.config.char_bag)), dtype=np.float64)
                 #if not any(substring in word for word in to_pop):   An initial attempt to remove duplicates, but it doesn't really work as the two markov models arrive at the same conclusions independently
                 self.to_pop.append(substring)
-
                 self.m.predict(substring[1], answer)
                 association_predictions = self.association_prediction_markov.predict(substring[1])
-                #association_predictions = {}
-                '''
-                for prediction in association_predictions:
-                    association_guess = substring[1] + prediction[0]
-                    association_guesses.append(association_guess)
-                if (association_predictions != {}):
-                    print("================")
-                    print(substring)
-                    print(association_predictions)
-                    print("================")
-                '''
                 prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
                 for prediction in prediction_dict.items():
                     to_add_word = substring[1] + prediction[0]
                     markov_prob = prediction[1]
+                    #The substring weighting was seen as redundant and removed.
                     #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
-                    #association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
+                    association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
                     regex_prob = self.add_common_regex_to_prob(substring[1], prediction[0])
-                    #Two lines below need to be run when weighted prob is working
-                    weighted_average_probs = self.calculate_weighted_average(markov_prob, 0 ,regex_prob , 0.25, 0.25, 0.25) #TODO: Update this so it is no longer hard coded
+
+                    weighted_average_probs = self.calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.33 , 0.33, 0.33) #TODO: Update this so it is no longer hard coded
                     to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                     if ((len(to_add_word) <= self.max_pwd_len +2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
                         #if not any(to_add_word in  word for word in new_current): SAME ATTEMPT AT removing duplicates as shown above
@@ -545,14 +534,16 @@ for i in Create_Password_Guesses("/Users/thomasbekman/Documents/Research/Passwor
     print("From loop")
     print(i)
 '''
-
+'''
 tom =Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/Use_me.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
 11)
+'''
 
 
-
-
+'''
 for i in tom.generatePasswords():
     print(i)
+
+'''

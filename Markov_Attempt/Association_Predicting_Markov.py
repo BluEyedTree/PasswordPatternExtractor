@@ -1,4 +1,5 @@
 import Markov_Attempt.Markov as Markov
+from multiprocessing import Pool
 import collections
 from unittest.mock import Mock, MagicMock
 import string
@@ -8,6 +9,8 @@ import Markov_Attempt.Utils as Mem_utils
 import numpy as np
 import math
 from multiprocessing import Process, Manager
+import json
+import glob
 
 
 
@@ -19,18 +22,53 @@ class Association_Prediction_Markov():
         self.charbag = []
         self.association_rules = Mem_utils.read_association_rules_into_memory(association_rule_path)
 
+    def train_Model(self, order):
+        dict = self.train_markovModel(self.training_data,order)
+        with open("text_store/" + str(order)+".txt", "w+") as file:
+           file.write(json.dumps(dict))
+        print("order " + str(order) +"Done")
+        return 0
+
+    def Merge(self, dict1, dict2):
+        res = {**dict1, **dict2}
+        return res
+
+    def combine_json_textfiles(self):
+        text_files = glob.glob("text_store/*.txt")
+        training_data = {}
+        for file in text_files:
+            with open(file) as text_file:
+                dict_to_add = json.loads(text_file.read())
+                training_data = self.Merge(training_data, dict_to_add)
+
+        return training_data
 
 
-        if(do_train):
-            self.create_composite_freq_dict()
 
 
 
+    def train(self):
 
+        # A multiprocess approach to training each markov model.
+        # We create a markov model for each order (from 2 to maxPassLength-1) then combine all their freq_dicts
+        orders = []
+        for i in range(2, self.max_password_length + 1):
+            orders.append(i)
+
+
+        with Pool(15) as p:
+            # results = p.map(find_number_guesses, passwords)
+            p.map(self.train_Model, orders)
+
+
+        print("sdasdasdasd")
+        self.combine_json_textfiles()
 
 
     '''
     Creates the freq dict of all different order markov models
+    '''
+
     '''
     def create_composite_freq_dict(self):
         # Non-Parallel approach for debugging
@@ -45,40 +83,26 @@ class Association_Prediction_Markov():
         print(self.freq_dict)
 
     '''
+
+
    
-    jobs = []
-     
-    #A multiprocess approach to training each markov model.
-    #We create a markov model for each order (from 2 to maxPassLength-1) then combine all their freq_dicts
 
-        manager = Manager()
-        freq_dict = manager.list()
-        for i in range(2, max_password_length+1):
-            p = Process(target=self.train_markovModel, args=(training_data, i, freq_dict))
-            jobs.append(p)
-            p.start()
-            print("Process: "+ str(i)+ "made.")
-        for proc in jobs:
-            proc.join()
-
-        for dict in freq_dict:
-            self.freq_dict = {**self.freq_dict, **dict}
 
         #print("-----")
         #print(self.freq_dict)
         #print("-----")
-    '''
+
 
 
 
     #TODO: FIgure out how to make dics work, so you don't have to spend time joining lists later.
-    def train_markovModel(self, training_data,  order, dict_to_write_to):
+    def train_markovModel(self, training_data,  order):
         config = Mock()
         config.char_bag = ["\n", "\t"] #This value doesn't matter, its just a fake value given to intitialize markov models below
         m = Markov.MarkovModel(config, smoothing='none', order=order)
         m.train(training_data)
-        dict_to_write_to.append(m.freq_dict)
-
+        #dict_to_write_to.append(m.freq_dict)
+        return m.freq_dict
 
 
     '''

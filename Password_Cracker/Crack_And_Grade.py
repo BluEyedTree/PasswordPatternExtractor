@@ -26,8 +26,9 @@ print("test")
 
 #def set_values(self, #training_data, #source_char_markov_model, #source_injection_markov_model, association_rules=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None, chars_to_use_in=None):
 
+'''
 markov_obj = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True,
-    training_data_path= "/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/Use_me.txt",
+    training_data_path= "/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/100k.txt",
     association_rule_path= "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 training_data = markov_obj.training_data
@@ -37,9 +38,9 @@ association_rules = markov_obj.association_rules
 association_rule_path = markov_obj.association_rule_path
 print(training_data)
 print("blah")
+'''
 
-
-
+''''''
 def find_number_guesses(password):
     iteration_num =0
 
@@ -161,12 +162,24 @@ def run_grading(test_dataset_path):
     '''
 
 start = time. time()
+print("sadasdasd")
+
+#markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
+
+tom = Markov_Attempt.Runner.Create_Password_Guesses(
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/2Mil.txt",
+"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
+11, True)
 
 
-
-run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")
-end = time. time()
+#markov_obj_meh.set_values(training_data, char_markov_model, association_markov_model, association_rules, association_rule_path)
+#run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")9
 print("TIME IT TOOK")
+end = time.time()
 print(end - start)
+
+
+
+
 
 
