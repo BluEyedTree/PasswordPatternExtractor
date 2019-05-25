@@ -21,6 +21,7 @@ import sys
 import tempfile
 import time
 
+'''
 
 # This is a hack to support multiple versions of the keras library.
 # It would be better to use a solution like virtualenv.
@@ -31,13 +32,14 @@ try:
     sys.stderr.write('Using keras version %s\n' % (keras.__version__))
 except AttributeError:
     pass
-
+'''
+'''
 from keras.models import Sequential, model_from_json
 from keras.layers.core import Activation, Dense, Dropout
 from keras.layers import TimeDistributed, Flatten, Conv1D, recurrent, Embedding
 import keras.utils
 from keras.callbacks import TensorBoard
-
+'''
 from sklearn.utils import shuffle
 import numpy as np
 #import tensorflow as tf

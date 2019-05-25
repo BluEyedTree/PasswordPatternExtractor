@@ -41,7 +41,7 @@ class Association_Prediction_Markov():
                 dict_to_add = json.loads(text_file.read())
                 training_data = self.Merge(training_data, dict_to_add)
 
-        return training_data
+        self.freq_dict = training_data
 
 
 

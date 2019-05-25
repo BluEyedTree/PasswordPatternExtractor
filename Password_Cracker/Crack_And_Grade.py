@@ -162,24 +162,93 @@ def run_grading(test_dataset_path):
     '''
 
 start = time. time()
-print("sadasdasd")
 
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/2Mil.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
 11, True)
 
 
 #markov_obj_meh.set_values(training_data, char_markov_model, association_markov_model, association_rules, association_rule_path)
 #run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")9
-print("TIME IT TOOK")
+print("Training time")
+end = time.time()
+print(end - start)
+
+
+#Test run grading @!!!!!!@
+'''
+try:
+    for get_next_password in tom:
+        print(get_next_password)
+
+except:
+    print("failure")
+    pass
+'''
+
+
+while True:
+    try:
+
+        D = tom.get_next()
+        if len(D[0][1]) >10:
+            break
+
+    except:
+        pass
+
 end = time.time()
 print(end - start)
 
 
 
+def find_Unique(assocation_pass_list, char_pass_list):
+    association_set = set(assocation_pass_list)
+    char_set = set(char_pass_list)
+
+
+    print("number of guesses from character markov")
+    print(str(len(char_pass_list))+"\n")
+
+
+    print("char_list_unique items")
+    print(str(len(char_set))+"\n")
+
+    print("number of guesses from association markov")
+    print(str(len(assocation_pass_list))+"\n")
+
+    print("assocation list unique items")
+    print(str(len(association_set))+"\n")
+
+    print("Percent of association is unique")
+    print(str(len(association_set.difference(char_set))/len(association_set))+"\n")
+
+
+    print("Intersection")
+    print(str(len(association_set.intersection(char_set)))+"\n")
+
+    print("In association, but not char")
+    print(str(len(association_set.difference(char_set)))+"\n")
+
+
+
+
+
+
+
+
+a = tom.assocation_pass
+b = tom.char_pass
+
+find_Unique(a,b)
+
+
+a ="m,eh"
+end = time.time()
+print(end - start)
 
 
 

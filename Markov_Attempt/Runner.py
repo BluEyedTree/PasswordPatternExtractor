@@ -35,12 +35,19 @@ class Create_Password_Guesses(collections.Iterator):
         self.to_pop = []
         self.config.char_bag = list(pg.PASSWORD_END + pg.PASSWORD_START + chars_to_use)
 
+
+        #TODO: REMOVE THIS. Its only to test the association Markov.
+        self.assocation_pass = []
+        self.char_pass = []
+        # TODO: REMOVE THIS. Its only to test the association Markov.
+
         if initilize_here:
             self.m = Markov.MarkovModel(self.config, smoothing='none', order= self.char_markov_order)
             self.m.train(self.training_data)
             self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=True)
             self.association_prediction_markov.train()
             self.initialize_first_current_layer()
+
 
         else:
             self.m = None
@@ -340,8 +347,10 @@ class Create_Password_Guesses(collections.Iterator):
     #TODO: The current method creates a lot of duplicates
     #association_prediction_markov = Association_markov.Association_Prediction_Markov(10,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
     #association_guesses = []
+
+
+
     def get_next(self):
-        new_current = []
         if self.to_pop != []:
             return self.pop_max(self.to_pop)
         else:
@@ -352,12 +361,59 @@ class Create_Password_Guesses(collections.Iterator):
                 self.to_pop.append(substring)
                 self.m.predict(substring[1], answer)
                 association_predictions = self.association_prediction_markov.predict(substring[1])
+
+
+
+
+                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #To test uniqueness of association
+                '''
+
+                #print("I'm the charbag")
+                #print( self.association_prediction_markov.charbag)
+                #print("I'm the charbag")
+                '''
+                answer_1 = np.zeros((len(self.config.char_bag)), dtype=np.float64)
+
+                self.m.predict(substring[1], answer_1)
+                char_probs_1 = self.probabilityToChar(self.m.alphabet, answer_1, substring)
+
+
+                for prob in char_probs_1:
+                    pass_made = substring[1] + prob[0]
+
+                    #if "\n" in pass_made:
+                    self.char_pass.append(pass_made)
+
+                for prob in association_predictions:
+                    pass_made = substring[1] + prob[0]
+                    #if "\n" in pass_made:
+                    self.assocation_pass.append(pass_made)
+            
+
+
+
+
+
+                # To test uniqueness of association
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+
                 prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
                 for prediction in prediction_dict.items():
                     to_add_word = substring[1] + prediction[0]
                     markov_prob = prediction[1]
                     #The substring weighting was seen as redundant and removed.
                     #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
+
+                    #TODO: Speed these up. BIG PROBLEM
                     association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
                     regex_prob = self.add_common_regex_to_prob(substring[1], prediction[0])
 
@@ -395,6 +451,10 @@ class Create_Password_Guesses(collections.Iterator):
             for i in passwords:
                 print(i)
             #return passwords
+
+
+
+
 
     '''
     print("----")
