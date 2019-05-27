@@ -1,4 +1,5 @@
-
+import os
+import psutil
 from multiprocessing.pool import Pool
 import multiprocessing
 import Markov_Attempt.Runner
@@ -166,14 +167,24 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/10k.txt",
-"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
+"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 3, 8,
 11, True)
 
 
 #markov_obj_meh.set_values(training_data, char_markov_model, association_markov_model, association_rules, association_rule_path)
 #run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")9
 print("Training time")
+end = time.time()
+print(end - start)
+
+tom.getPasswords()
+with open("char+assoc_tree.txt", "w+") as file:
+    file.write(str(tom.passwords))
+#process = psutil.Process(os.getpid())
+#print(process.memory_info().rss)
+
+
 end = time.time()
 print(end - start)
 
@@ -188,20 +199,21 @@ except:
     print("failure")
     pass
 '''
+'''
 to_write = []
 count = 0
 
 while True:
     try:
 
-        if count >500:
+        if count >6000:
             break
         D = tom.get_next()
         #print(D)
         if ("\n" in D[0][1]):
             count += 1
-            if count % 500 == 0:
-                print(str((count / 500) * 100) + "%")
+            if count % 200 == 0:
+                print(str((count / 6000) * 100) + "%")
             #print(D)
             to_write.append(D[0][1])
         #file.write(D[0][1])
@@ -224,7 +236,7 @@ with open("char_overnight.txt", "w+") as file:
 
 end = time.time()
 print(end - start)
-
+'''
 #We
 
 '''

@@ -2,7 +2,7 @@ import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
 from unittest.mock import Mock, MagicMock
 import numpy as np
-
+import sys
 import time
 import Password_Sorting.Password_Scoring as Scoring
 import string
@@ -11,6 +11,7 @@ import Password_Sorting.Utils as Utils
 import Markov_Attempt.Association_Predicting_Markov as Association_markov
 import Markov_Attempt.Utils as mem_utils
 import collections
+import Markov_Attempt.treeForMarkov as tree
 
 class Create_Password_Guesses(collections.Iterator):
 
@@ -34,6 +35,9 @@ class Create_Password_Guesses(collections.Iterator):
         self.current_layer = []
         self.to_pop = []
         self.config.char_bag = list(pg.PASSWORD_END + pg.PASSWORD_START + chars_to_use)
+        self.root_node = tree.Node("", 1)
+        self.passwords =[]
+        sys.setrecursionlimit(50000)
 
 
         #TODO: REMOVE THIS. Its only to test the association Markov.
@@ -360,7 +364,7 @@ class Create_Password_Guesses(collections.Iterator):
                 #if not any(substring in word for word in to_pop):   An initial attempt to remove duplicates, but it doesn't really work as the two markov models arrive at the same conclusions independently
                 self.to_pop.append(substring)
                 self.m.predict(substring[1], answer)
-                #association_predictions = self.association_prediction_markov.predict(substring[1])
+                association_predictions = self.association_prediction_markov.predict(substring[1])
 
 
 
@@ -407,8 +411,8 @@ class Create_Password_Guesses(collections.Iterator):
 
 
 
-                prediction_dict = self.probabilityToChar(self.m.alphabet, answer, substring)
-                #prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
+                #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, substring)
+                prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
                 for prediction in prediction_dict.items():
                     to_add_word = substring[1] + prediction[0]
                     markov_prob = prediction[1]
@@ -455,135 +459,187 @@ class Create_Password_Guesses(collections.Iterator):
             #return passwords
 
 
+    #Test of old method
 
 
 
-    '''
-    print("----")
-    print(generatePasswords())
-    print("----")
-    '''
+    def markovBuilder(self, currentNode, maxPasswordLength=8):
+        config = Mock()
+
+        # TODO: Add full character set to the char bag
+        #config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
+        answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
+        if ("\n" not in currentNode.value and len(currentNode.value) <= maxPasswordLength):
+            # m.predict(currentNode.value, answer)
+            # char_to_add = probabilityToChar(m.alphabet, answer)
+            self.m.predict(currentNode.value, answer)
+            association_predictions = self.association_prediction_markov.predict(currentNode.value)
+
+            prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, currentNode.value), **association_predictions}
+            predict_items = prediction_dict.items()
+            #print(prediction_dict)
+
+            #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, currentNode.value)
+            for char, probability in predict_items:
+
+                newString = currentNode.value + char
+                newProbability = probability * currentNode.priority  # Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
+                print(newString)
+                new_node_to_add = tree.Node(newString, newProbability)
+                currentNode.add_child(new_node_to_add)
+
+            currentNode.value = None
+            #currentNode.priority = None
 
 
-    print("------test------")
+            for child in currentNode.getChildren():
+                self.markovBuilder(child)
+
+    def getPasswords(self):
+        print("Size of the markov builder")
+
+        self.markovBuilder(self.root_node)
 
 
-    '''
-    print("Starting test below")
-    
-    
-    
-    
-    #a = Association_markov.Association_Prediction_Markov(5)
-    a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-    print("/////")
-    print(a.predict("\t3456712"))
-    print("/////")
-    
-    #ab= Association_Predicting_Markov_2.test()
-    #a = Association_Predicting_Markov_2.Association_Prediction_Markov()
-    #a.update_charbag("1234567")
-    #print(a.charbag)
-    
-    #a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
-    
-    
-    
-    
-    
-    print("Starting large scale test")
-    start_time = time.time()
-    
-    
-    
-    
-    '''
+        def getPasswords_1(node):
+            if (node.getChildren() != []):
+                for sibling in node.getChildren():
+                   getPasswords_1(sibling)
+            else:
+                if(node.value is not None):
+                    if("\n" in node.value):
+                        self.passwords.append(node.value)
 
-    '''
-    print("!!!!")
-    a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-    
-    c = a.freq_dict
-    
-    #answer = a.predict("s34a")
-    #charbag, probabilities, current_word
-    #print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    #answer = a.predict("567")
-    #charbag, probabilities, current_word
-    #print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    answer = a.predict("567a")
-    #charbag, probabilities, current_word
-    #print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    
-    answer = a.predict("567b")
-    #charbag, probabilities, current_word
-    #print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    answer = a.predict("\tv")
-    #charbag, probabilities, current_word
-    #print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    answer = a.predict("567d")
-    '''
-    #charbag, probabilities, current_word
-    '''
-    print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    for i in list(string.printable):
-    answer = a.predict("567"+str(i))
-    # charbag, probabilities, current_word
-    print("Guess 567 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-    
-    for i in list(string.printable):
-    answer = a.predict("34"+str(i))
-    # charbag, probabilities, current_word
-    print("Guess 34 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-    
-    
-    for i in list(string.printable):
-    answer = a.predict("hl"+str(i))
-    # charbag, probabilities, current_word
-    print("Guess hl " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-    
-    
-    for i in list(string.printable):
-    answer = a.predict("uv"+str(i))
-    # charbag, probabilities, current_word
-    print("Guess uv " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-    
-    
-    for i in list(string.printable):
-    answer = a.predict("uv"+str(i) +str(i))
-    # charbag, probabilities, current_word
-    print("Guess uv " + str(i) + str(i) +" " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-    
-    print ("Large Scale test took: ", time.time() - start_time, "s to run")
-    
-    
-    
-    answer = a.predict("34a")
-    #charbag, probabilities, current_word
-    print("Guess 34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    answer = a.predict("34")
-    #charbag, probabilities, current_word
-    print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-    
-    
-    
-    print("!!!!")
-    
-    
-    
-    a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-    answer = a.predict("3456")
-    #charbag, probabilities, current_word
-    print("Guess 34" + str(answer))
-    
-    '''
+        getPasswords_1(self.root_node)
+
+        print("!!!!!")
+        #print(self.passwords)
+
+'''
+print("----")
+print(generatePasswords())
+print("----")
+'''
+
+
+
+
+'''
+print("Starting test below")
+
+
+
+
+#a = Association_markov.Association_Prediction_Markov(5)
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+print("/////")
+print(a.predict("\t3456712"))
+print("/////")
+
+#ab= Association_Predicting_Markov_2.test()
+#a = Association_Predicting_Markov_2.Association_Prediction_Markov()
+#a.update_charbag("1234567")
+#print(a.charbag)
+
+#a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
+
+
+
+
+
+print("Starting large scale test")
+start_time = time.time()
+
+
+
+
+'''
+
+'''
+print("!!!!")
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+
+c = a.freq_dict
+
+#answer = a.predict("s34a")
+#charbag, probabilities, current_word
+#print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+#answer = a.predict("567")
+#charbag, probabilities, current_word
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567a")
+#charbag, probabilities, current_word
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+
+answer = a.predict("567b")
+#charbag, probabilities, current_word
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("\tv")
+#charbag, probabilities, current_word
+#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("567d")
+'''
+#charbag, probabilities, current_word
+'''
+print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+for i in list(string.printable):
+answer = a.predict("567"+str(i))
+# charbag, probabilities, current_word
+print("Guess 567 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+for i in list(string.printable):
+answer = a.predict("34"+str(i))
+# charbag, probabilities, current_word
+print("Guess 34 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+answer = a.predict("hl"+str(i))
+# charbag, probabilities, current_word
+print("Guess hl " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+answer = a.predict("uv"+str(i))
+# charbag, probabilities, current_word
+print("Guess uv " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+
+for i in list(string.printable):
+answer = a.predict("uv"+str(i) +str(i))
+# charbag, probabilities, current_word
+print("Guess uv " + str(i) + str(i) +" " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
+
+print ("Large Scale test took: ", time.time() - start_time, "s to run")
+
+
+
+answer = a.predict("34a")
+#charbag, probabilities, current_word
+print("Guess 34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+answer = a.predict("34")
+#charbag, probabilities, current_word
+print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
+
+
+
+print("!!!!")
+
+
+
+a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
+answer = a.predict("3456")
+#charbag, probabilities, current_word
+print("Guess 34" + str(answer))
+
+'''
 
 '''
 class Create_Password_Guesses:
@@ -609,3 +665,10 @@ for i in tom.generatePasswords():
     print(i)
 
 '''
+
+
+#Newly attempted Markov Building code
+'''
+
+'''
+
