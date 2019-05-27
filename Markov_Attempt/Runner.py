@@ -360,7 +360,7 @@ class Create_Password_Guesses(collections.Iterator):
                 #if not any(substring in word for word in to_pop):   An initial attempt to remove duplicates, but it doesn't really work as the two markov models arrive at the same conclusions independently
                 self.to_pop.append(substring)
                 self.m.predict(substring[1], answer)
-                association_predictions = self.association_prediction_markov.predict(substring[1])
+                #association_predictions = self.association_prediction_markov.predict(substring[1])
 
 
 
@@ -372,6 +372,7 @@ class Create_Password_Guesses(collections.Iterator):
                 #print("I'm the charbag")
                 #print( self.association_prediction_markov.charbag)
                 #print("I'm the charbag")
+                '''
                 '''
                 answer_1 = np.zeros((len(self.config.char_bag)), dtype=np.float64)
 
@@ -387,10 +388,11 @@ class Create_Password_Guesses(collections.Iterator):
 
                 for prob in association_predictions:
                     pass_made = substring[1] + prob[0]
+
                     #if "\n" in pass_made:
                     self.assocation_pass.append(pass_made)
             
-
+                '''
 
 
 
@@ -405,8 +407,8 @@ class Create_Password_Guesses(collections.Iterator):
 
 
 
-
-                prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
+                prediction_dict = self.probabilityToChar(self.m.alphabet, answer, substring)
+                #prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
                 for prediction in prediction_dict.items():
                     to_add_word = substring[1] + prediction[0]
                     markov_prob = prediction[1]
@@ -414,10 +416,10 @@ class Create_Password_Guesses(collections.Iterator):
                     #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
 
                     #TODO: Speed these up. BIG PROBLEM
-                    association_prob = self.add_assocation_rules_to_prob(substring[1], prediction[0])
-                    regex_prob = self.add_common_regex_to_prob(substring[1], prediction[0])
+                    association_prob = 0#self.add_assocation_rules_to_prob(substring[1], prediction[0])
+                    regex_prob = 0#self.add_common_regex_to_prob(substring[1], prediction[0])
 
-                    weighted_average_probs = self.calculate_weighted_average(markov_prob, association_prob ,regex_prob , 0.33 , 0.33, 0.33) #TODO: Update this so it is no longer hard coded
+                    weighted_average_probs = self.calculate_weighted_average(markov_prob, association_prob ,regex_prob , 1, 0, 0) #TODO: Update this so it is no longer hard coded
                     to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
                     if ((len(to_add_word) <= self.max_pwd_len +2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
                         #if not any(to_add_word in  word for word in new_current): SAME ATTEMPT AT removing duplicates as shown above

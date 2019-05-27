@@ -166,7 +166,7 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/10k.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
 11, True)
 
@@ -188,22 +188,66 @@ except:
     print("failure")
     pass
 '''
-
+to_write = []
+count = 0
 
 while True:
     try:
 
+        if count >500:
+            break
         D = tom.get_next()
-        if len(D[0][1]) >10:
+        #print(D)
+        if ("\n" in D[0][1]):
+            count += 1
+            if count % 500 == 0:
+                print(str((count / 500) * 100) + "%")
+            #print(D)
+            to_write.append(D[0][1])
+        #file.write(D[0][1])
+        if len(D[0][1]) >14:
+            to_write.append(D[0][1])
             break
 
+
+
     except:
+        print("Except")
         pass
+
+
+print(to_write)
+with open("char_overnight.txt", "w+") as file:
+    file.write(str(to_write))
+
+
 
 end = time.time()
 print(end - start)
 
+#We
 
+'''
+def preprocess_passwords(association_pass_list,char_pass_list):
+    to_check_dict = {}
+    char_pass_to_use = []
+    for password in char_pass_list:
+        #As we now the char markov will 
+        if("\n" not in password):
+            char_pass_to_use
+
+    for i in range(1,12):
+        to_check_dict[i] = [[],[]]
+
+    for i in association_pass_list:
+        to_check_dict.get(len(i))[1].append(i)
+    for i in char_pass_list:
+        to_check_dict.get(len(i))[1].append(i)
+
+
+'''
+
+'''
 
 def find_Unique(assocation_pass_list, char_pass_list):
     association_set = set(assocation_pass_list)
@@ -232,6 +276,7 @@ def find_Unique(assocation_pass_list, char_pass_list):
 
     print("In association, but not char")
     print(str(len(association_set.difference(char_set)))+"\n")
+'''
 
 
 
@@ -240,10 +285,12 @@ def find_Unique(assocation_pass_list, char_pass_list):
 
 
 
-a = tom.assocation_pass
-b = tom.char_pass
 
-find_Unique(a,b)
+
+#a = tom.assocation_pass
+#b = tom.char_pass
+
+#find_Unique(a,b)
 
 
 a ="m,eh"
