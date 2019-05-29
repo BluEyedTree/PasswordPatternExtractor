@@ -169,7 +169,7 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/80k.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/100k_mix.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 3, 8,
 11, True)
 
@@ -192,20 +192,31 @@ end = time.time()
 print(end - start)
 '''
 
-
+print("test")
+start = time.time()
+#a = tom.get_passwords_no_recusion_non_distributed("\t")
+#print(a)
+#tom.getPasswords()
+end = time.time()
+print(end - start)
 
 start = time.time()
-'''
-a = tom.get_passwords_no_recursion(3)
-with open("assoc+char_noTree.txt", "w+") as file:
-    file.write(str(a))
-process = psutil.Process(os.getpid())
-print(process.memory_info().rss)
 
-end = time.time()
-'''
+#a = tom.get_passwords_no_recursion("",2)
+#with open("assoc+char_noTree.txt", "w+") as file:
+#    file.write(str(a))
+#process = psutil.Process(os.getpid())
+#print(process.memory_info().rss)
+
+#end = time.time()
+
 tom.distributed_generate_passwords()
+end = time.time()
 print(end - start)
+
+
+
+
 
 
 

@@ -2,7 +2,9 @@ import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
 from multiprocessing import Pool
 import multiprocessing
-from unittest.mock import Mock
+import glob
+import json
+from unittest.mock import Mock, MagicMock
 import numpy as np
 import sys
 import time
@@ -15,6 +17,12 @@ import Markov_Attempt.Utils as mem_utils
 import collections
 import Markov_Attempt.treeForMarkov as tree
 from collections import deque
+
+class config_mock():
+    def __init__(self):
+        self.charbag = []
+
+
 
 class Create_Password_Guesses(collections.Iterator):
 
@@ -30,8 +38,8 @@ class Create_Password_Guesses(collections.Iterator):
 
 
         self.max_pwd_len = max_pwd_len
-        self.config = Mock()
-        self.config.__class__ = Mock
+        self.config = config_mock()
+        #self.config.__class__ = Mock
         white_space_chars = set(string.whitespace)
         all_chars = set(string.printable)
         chars_to_use = list(all_chars - white_space_chars)
@@ -54,7 +62,9 @@ class Create_Password_Guesses(collections.Iterator):
             self.m.train(self.training_data)
             self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=True)
             self.association_prediction_markov.train()
-            self.initialize_first_current_layer()
+            #self.initialize_first_current_layer()
+
+
 
 
         else:
@@ -104,9 +114,20 @@ class Create_Password_Guesses(collections.Iterator):
         self.initialize_first_current_layer()
 
 
+    def create_new_models(self):
+        char = Markov.MarkovModel(self.config, smoothing='none', order=self.char_markov_order)
+        char.freq_dict = self.m.freq_dict
+        char.config = self.m.config
+        char.alphabet = self.m.alphabet
+        char.configure_smoother()
 
 
 
+        assoc = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=False)
+        assoc.freq_dict = self.association_prediction_markov.freq_dict
+
+
+        return (char, assoc)
 
 
     #TODO: Should paswords used for training have the start and end characters?
@@ -523,24 +544,24 @@ class Create_Password_Guesses(collections.Iterator):
         #print(self.passwords)
 
 
-    def predict_next_substring(self,current_value, current_priority,  use_assocation_rules=False):
+    def predict_next_substring(self,char, assoc, current_value, current_priority,  use_assocation_rules=False):
         #Format: [(prob, string), (prob,string) ...]
         new_predictions = []
 
         answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
-        self.m.predict(current_value, answer)
+        char.predict(current_value, answer)
 
 
         if use_assocation_rules:
-            association_predictions = self.association_prediction_markov.predict(current_value)
+            association_predictions = assoc.predict(current_value)
 
-            prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, current_value),
+            prediction_dict = {**self.probabilityToChar(char.alphabet, answer, current_value),
                            **association_predictions}
 
 
         #Case with no association rules
         else:
-            prediction_dict = self.probabilityToChar(self.m.alphabet, answer, current_value)
+            prediction_dict = self.probabilityToChar(char.alphabet, answer, current_value)
 
 
         predict_items = prediction_dict.items()
@@ -550,18 +571,44 @@ class Create_Password_Guesses(collections.Iterator):
             new_predictions.append((newProbability, newString))
         return new_predictions
 
+    #def predict_next_substring_non_dsitributed(self,char, assoc, current_value, current_priority,  use_assocation_rules=False):
+    def predict_next_substring_non_dsitributed(self, current_value, current_priority, use_assocation_rules=False):
+        # Format: [(prob, string), (prob,string) ...]
+        new_predictions = []
+
+        answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
+        self.m.predict(current_value, answer)
+
+        if use_assocation_rules:
+            association_predictions = self.association_prediction_markov.predict(current_value)
+
+            prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, current_value),
+                               **association_predictions}
+
+
+        # Case with no association rules
+        else:
+            prediction_dict = self.probabilityToChar(self.m.alphabet, answer, current_value)
+
+        predict_items = prediction_dict.items()
+        for char, probability in predict_items:
+            newString = current_value + char
+            newProbability = probability * current_priority
+            new_predictions.append((newProbability, newString))
+        return new_predictions
+
     # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
-    def get_passwords_no_recursion(self, start_point, max_pwd_length=3):
+    def get_passwords_no_recusion_non_distributed(self, start_point, max_pwd_length=4):
 
         count_1 =0
         completed_passwords = []
-        to_work = self.predict_next_substring(start_point, 1, True)
+        to_work = self.predict_next_substring_non_dsitributed(start_point, 1, True)
         next =[]
         while to_work != []:
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
-                next_prediction = self.predict_next_substring(next_string, next_prob, True)
+                next_prediction = self.predict_next_substring_non_dsitributed(next_string, next_prob, True)
                 for i in next_prediction:
                     next.append(i)
                     #if (len(i[1]) - 1 <= max_pwd_length):
@@ -587,7 +634,7 @@ class Create_Password_Guesses(collections.Iterator):
                 else:
                     #a =None
                     #b = None
-                    next_prediction = self.predict_next_substring(next_string, next_prob, True)
+                    next_prediction = self.predict_next_substring_non_dsitributed(next_string, next_prob, True)
                     for i in next_prediction:
                         #if meh > 19.84:
                         #    print(len(next_prediction))
@@ -616,16 +663,113 @@ class Create_Password_Guesses(collections.Iterator):
         #print(completed_passwords)
         return completed_passwords
 
+
+
+    # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
+    def get_passwords_no_recursion(self, char, assoc, start_point, max_pwd_length=4):
+
+        count_1 =0
+        completed_passwords = []
+        to_work = self.predict_next_substring(char,assoc,start_point, 1, True)
+        next =[]
+        while to_work != []:
+            for node in to_work:
+                next_string = node[1]
+                next_prob = node[0]
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                for i in next_prediction:
+                    next.append(i)
+                    #if (len(i[1]) - 1 <= max_pwd_length):
+                    #    next.append(i)
+            #print(to_work)
+            to_work.clear()
+            meh =0
+            for node in next:
+                next_string = node[1]
+                next_prob = node[0]
+                #IS IT? #BROKEN HERE
+                if (next_string[-1:] == "\n" ):#and len(next_string)-2 <= max_pwd_length):
+                    #print("sadasdas")
+                    #print(next_string[-1:])
+                    a = next_string[-1:]
+                    #print("sadasdas")
+
+                    completed_passwords.append(next_string)
+                    #count_1 += 1
+                    #meh = count_1 / 25000 * 100
+                    #print(str((count_1 / 25000) * 100) + "%")
+
+                else:
+                    #a =None
+                    #b = None
+                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                    for i in next_prediction:
+                        #if meh > 19.84:
+                        #    print(len(next_prediction))
+
+                        if(i[1][-1:] == "\n"):
+                            completed_passwords.append(i[1])
+
+                        elif(len(i[1])-2 <= max_pwd_length):
+                            to_work.append(i)
+
+            #print(next)
+            next.clear()
+
+        #print(completed_passwords)
+
+
+
+    def combine_generated_passwords(self):
+        text_files = glob.glob("generated_password_store/*.txt")
+        training_data = []
+        for file in text_files:
+            with open(file) as text_file:
+                list_from_disk = json.loads(text_file.read())
+                training_data = training_data + list_from_disk
+
+        #TODO: FINSIH ME
+
+
+
+
+
     def distributed_generate_passwords(self):
 
-        first_layer_nodes = self.predict_next_substring("\t", 1, True)
+
+        char_first, assoc_first =  self.create_new_models()
+
+        #self.predict_next_substring(char, assoc, next_string, next_prob, True)
+
+        first_layer_nodes = self.predict_next_substring(char_first, assoc_first, "\t", 1, True)
+
+        first_layer = []
+
+        for node in first_layer_nodes:
+            first_layer.append(node[1])
+
+        args = []
+
+        start = time.time()
+        for i in range(len(first_layer)):
+            char, assoc = self.create_new_models()
+
+            args.append((char,assoc,first_layer[i]))
+
+        end = time.time()
+        print("Time to make models")
+        print(end-start)
+
+        #print([char_models, assoc_models, first_layer])
 
         with Pool(multiprocessing.cpu_count()) as p:
             # results = p.map(find_number_guesses, passwords)
-            p.map(self.get_passwords_no_recursion, first_layer_nodes)
+
+            p.starmap(self.get_passwords_no_recursion, args)
+            #p.map(self.get_passwords_no_recursion, first_layer)
 
 
-
+        #return passwords
 
 
 
