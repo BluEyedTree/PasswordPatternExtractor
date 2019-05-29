@@ -6,6 +6,8 @@ import Markov_Attempt.Runner
 import Markov_Attempt.Runner
 import time
 
+from multiprocessing import Pool
+
 import os
 import copy
 Markov_Attempt.Runner
@@ -167,26 +169,45 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/80k.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 3, 8,
 11, True)
 
 
 #markov_obj_meh.set_values(training_data, char_markov_model, association_markov_model, association_rules, association_rule_path)
 #run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")9
+
 print("Training time")
 end = time.time()
 print(end - start)
-
+'''
+start = time.time()
 tom.getPasswords()
-with open("char+assoc_tree.txt", "w+") as file:
+with open("assoc_char_recursion.txt", "w+") as file:
     file.write(str(tom.passwords))
-#process = psutil.Process(os.getpid())
-#print(process.memory_info().rss)
-
+#end = time.time()
+print("recursion approach")
 
 end = time.time()
 print(end - start)
+'''
+
+
+
+start = time.time()
+'''
+a = tom.get_passwords_no_recursion(3)
+with open("assoc+char_noTree.txt", "w+") as file:
+    file.write(str(a))
+process = psutil.Process(os.getpid())
+print(process.memory_info().rss)
+
+end = time.time()
+'''
+tom.distributed_generate_passwords()
+print(end - start)
+
+
 
 
 #Test run grading @!!!!!!@

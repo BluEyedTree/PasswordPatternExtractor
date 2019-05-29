@@ -1,6 +1,8 @@
 import Markov_Attempt.Markov as Markov
 import Markov_Attempt.pwd_guess as pg
-from unittest.mock import Mock, MagicMock
+from multiprocessing import Pool
+import multiprocessing
+from unittest.mock import Mock
 import numpy as np
 import sys
 import time
@@ -12,6 +14,7 @@ import Markov_Attempt.Association_Predicting_Markov as Association_markov
 import Markov_Attempt.Utils as mem_utils
 import collections
 import Markov_Attempt.treeForMarkov as tree
+from collections import deque
 
 class Create_Password_Guesses(collections.Iterator):
 
@@ -28,6 +31,7 @@ class Create_Password_Guesses(collections.Iterator):
 
         self.max_pwd_len = max_pwd_len
         self.config = Mock()
+        self.config.__class__ = Mock
         white_space_chars = set(string.whitespace)
         all_chars = set(string.printable)
         chars_to_use = list(all_chars - white_space_chars)
@@ -463,10 +467,10 @@ class Create_Password_Guesses(collections.Iterator):
 
 
 
-    def markovBuilder(self, currentNode, maxPasswordLength=8):
+    def markovBuilder(self, currentNode, maxPasswordLength=4):
         config = Mock()
 
-        # TODO: Add full character set to the char bag
+
         #config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
         answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
         if ("\n" not in currentNode.value and len(currentNode.value) <= maxPasswordLength):
@@ -476,6 +480,7 @@ class Create_Password_Guesses(collections.Iterator):
             association_predictions = self.association_prediction_markov.predict(currentNode.value)
 
             prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, currentNode.value), **association_predictions}
+            #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, currentNode.value)
             predict_items = prediction_dict.items()
             #print(prediction_dict)
 
@@ -484,16 +489,18 @@ class Create_Password_Guesses(collections.Iterator):
 
                 newString = currentNode.value + char
                 newProbability = probability * currentNode.priority  # Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
-                print(newString)
+                #print(newString)
                 new_node_to_add = tree.Node(newString, newProbability)
                 currentNode.add_child(new_node_to_add)
 
-            currentNode.value = None
+            #currentNode.value = None
             #currentNode.priority = None
 
-
-            for child in currentNode.getChildren():
+            #TODO: make the call without the sorting, this is really slowing thrings down!!!
+            #for child in currentNode.getChildren():
+            for child in  currentNode.children:
                 self.markovBuilder(child)
+
 
     def getPasswords(self):
         print("Size of the markov builder")
@@ -514,6 +521,114 @@ class Create_Password_Guesses(collections.Iterator):
 
         print("!!!!!")
         #print(self.passwords)
+
+
+    def predict_next_substring(self,current_value, current_priority,  use_assocation_rules=False):
+        #Format: [(prob, string), (prob,string) ...]
+        new_predictions = []
+
+        answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
+        self.m.predict(current_value, answer)
+
+
+        if use_assocation_rules:
+            association_predictions = self.association_prediction_markov.predict(current_value)
+
+            prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, current_value),
+                           **association_predictions}
+
+
+        #Case with no association rules
+        else:
+            prediction_dict = self.probabilityToChar(self.m.alphabet, answer, current_value)
+
+
+        predict_items = prediction_dict.items()
+        for char, probability in predict_items:
+            newString = current_value + char
+            newProbability = probability * current_priority
+            new_predictions.append((newProbability, newString))
+        return new_predictions
+
+    # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
+    def get_passwords_no_recursion(self, start_point, max_pwd_length=3):
+
+        count_1 =0
+        completed_passwords = []
+        to_work = self.predict_next_substring(start_point, 1, True)
+        next =[]
+        while to_work != []:
+            for node in to_work:
+                next_string = node[1]
+                next_prob = node[0]
+                next_prediction = self.predict_next_substring(next_string, next_prob, True)
+                for i in next_prediction:
+                    next.append(i)
+                    #if (len(i[1]) - 1 <= max_pwd_length):
+                    #    next.append(i)
+            #print(to_work)
+            to_work.clear()
+            meh =0
+            for node in next:
+                next_string = node[1]
+                next_prob = node[0]
+                #IS IT? #BROKEN HERE
+                if (next_string[-1:] == "\n" ):#and len(next_string)-2 <= max_pwd_length):
+                    #print("sadasdas")
+                    #print(next_string[-1:])
+                    a = next_string[-1:]
+                    #print("sadasdas")
+
+                    completed_passwords.append(next_string)
+                    #count_1 += 1
+                    #meh = count_1 / 25000 * 100
+                    #print(str((count_1 / 25000) * 100) + "%")
+
+                else:
+                    #a =None
+                    #b = None
+                    next_prediction = self.predict_next_substring(next_string, next_prob, True)
+                    for i in next_prediction:
+                        #if meh > 19.84:
+                        #    print(len(next_prediction))
+
+                        if(i[1][-1:] == "\n"):
+                            completed_passwords.append(i[1])
+
+                        elif(len(i[1])-2 <= max_pwd_length):
+                            to_work.append(i)
+
+                    #count = len(to_work)
+                    '''
+                    for prob,string in to_work:
+                        if(len(string)>max_pwd_length):
+                            count -= 1
+                    if count ==0:
+                         pass
+                         break
+
+                    '''
+
+
+            #print(next)
+            next.clear()
+
+        #print(completed_passwords)
+        return completed_passwords
+
+    def distributed_generate_passwords(self):
+
+        first_layer_nodes = self.predict_next_substring("\t", 1, True)
+
+        with Pool(multiprocessing.cpu_count()) as p:
+            # results = p.map(find_number_guesses, passwords)
+            p.map(self.get_passwords_no_recursion, first_layer_nodes)
+
+
+
+
+
+
 
 '''
 print("----")
