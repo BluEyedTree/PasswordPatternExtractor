@@ -661,6 +661,9 @@ class Create_Password_Guesses(collections.Iterator):
             next.clear()
 
         #print(completed_passwords)
+
+
+
         return completed_passwords
 
 
@@ -716,6 +719,8 @@ class Create_Password_Guesses(collections.Iterator):
             #print(next)
             next.clear()
 
+        with open("generated_password_store/"+str(start_point)+".txt", "w+") as file:
+            file.write(json.dumps(completed_passwords))
         #print(completed_passwords)
 
 
@@ -726,10 +731,13 @@ class Create_Password_Guesses(collections.Iterator):
         for file in text_files:
             with open(file) as text_file:
                 list_from_disk = json.loads(text_file.read())
+                print(list_from_disk)
                 training_data = training_data + list_from_disk
 
-        #TODO: FINSIH ME
+        #TODO: Modify this. For the sake of temporary testing this is fine. But needs to be updated for the full dataset. n
 
+        with open("final_output.txt", "w+") as file:
+            file.write(json.dumps(training_data))
 
 
 
@@ -762,14 +770,22 @@ class Create_Password_Guesses(collections.Iterator):
 
         #print([char_models, assoc_models, first_layer])
 
+        start = time.time()
         with Pool(multiprocessing.cpu_count()) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)
             #p.map(self.get_passwords_no_recursion, first_layer)
+        end = time.time()
+        print("Time produce passwords")
+        print(end - start)
 
+        print("Time to merge passwords files")
+        start = time.time()
+        self.combine_generated_passwords()
+        end = time.time()
+        print(end - start)
 
-        #return passwords
 
 
 
