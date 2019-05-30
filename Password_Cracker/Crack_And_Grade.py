@@ -5,7 +5,7 @@ import multiprocessing
 import Markov_Attempt.Runner
 import Markov_Attempt.Runner
 import time
-
+import json
 from multiprocessing import Pool
 
 import os
@@ -169,7 +169,7 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/100k_mix.txt",
+"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
 "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 3, 8,
 11, True)
 
@@ -192,13 +192,22 @@ end = time.time()
 print(end - start)
 '''
 
+
+
+'''
 print("test")
 start = time.time()
-#a = tom.get_passwords_no_recusion_non_distributed("\t")
+a = tom.get_passwords_no_recusion_non_distributed("\t")
+with open("non_distributed.txt", "w+") as file:
+    file.write(json.dumps(a))
 #print(a)
 #tom.getPasswords()
 end = time.time()
 print(end - start)
+'''
+
+
+
 
 start = time.time()
 

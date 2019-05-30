@@ -611,8 +611,8 @@ class Create_Password_Guesses(collections.Iterator):
                 next_prediction = self.predict_next_substring_non_dsitributed(next_string, next_prob, True)
                 for i in next_prediction:
                     next.append(i)
-                    #if (len(i[1]) - 1 <= max_pwd_length):
-                    #    next.append(i)
+                    if (len(i[1]) - 2 <= max_pwd_length):
+                        next.append(i)
             #print(to_work)
             to_work.clear()
             meh =0
@@ -620,7 +620,7 @@ class Create_Password_Guesses(collections.Iterator):
                 next_string = node[1]
                 next_prob = node[0]
                 #IS IT? #BROKEN HERE
-                if (next_string[-1:] == "\n" ):#and len(next_string)-2 <= max_pwd_length):
+                if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):#and len(next_string)-2 <= max_pwd_length):
                     #print("sadasdas")
                     #print(next_string[-1:])
                     a = next_string[-1:]
@@ -639,7 +639,7 @@ class Create_Password_Guesses(collections.Iterator):
                         #if meh > 19.84:
                         #    print(len(next_prediction))
 
-                        if(i[1][-1:] == "\n"):
+                        if(i[1][-1:] == "\n"and len(i[1])-2 <= max_pwd_length):
                             completed_passwords.append(i[1])
 
                         elif(len(i[1])-2 <= max_pwd_length):
@@ -673,17 +673,18 @@ class Create_Password_Guesses(collections.Iterator):
 
         count_1 =0
         completed_passwords = []
-        to_work = self.predict_next_substring(char,assoc,start_point, 1, True)
+        to_work = self.predict_next_substring(char,assoc,start_point, 1, False)
         next =[]
         while to_work != []:
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
                 for i in next_prediction:
-                    next.append(i)
-                    #if (len(i[1]) - 1 <= max_pwd_length):
-                    #    next.append(i)
+                    #if(len(i[1])-2 <= max_pwd_length):
+                    #next.append(i)
+                    if (len(i[1]) - 2 <= max_pwd_length):
+                        next.append(i)
             #print(to_work)
             to_work.clear()
             meh =0
@@ -691,11 +692,8 @@ class Create_Password_Guesses(collections.Iterator):
                 next_string = node[1]
                 next_prob = node[0]
                 #IS IT? #BROKEN HERE
-                if (next_string[-1:] == "\n" ):#and len(next_string)-2 <= max_pwd_length):
-                    #print("sadasdas")
-                    #print(next_string[-1:])
-                    a = next_string[-1:]
-                    #print("sadasdas")
+                if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):
+
 
                     completed_passwords.append(next_string)
                     #count_1 += 1
@@ -705,12 +703,12 @@ class Create_Password_Guesses(collections.Iterator):
                 else:
                     #a =None
                     #b = None
-                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
                     for i in next_prediction:
                         #if meh > 19.84:
                         #    print(len(next_prediction))
 
-                        if(i[1][-1:] == "\n"):
+                        if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
                             completed_passwords.append(i[1])
 
                         elif(len(i[1])-2 <= max_pwd_length):
@@ -736,7 +734,7 @@ class Create_Password_Guesses(collections.Iterator):
 
         #TODO: Modify this. For the sake of temporary testing this is fine. But needs to be updated for the full dataset. n
 
-        with open("final_output.txt", "w+") as file:
+        with open("char_distributed.txt", "w+") as file:
             file.write(json.dumps(training_data))
 
 
