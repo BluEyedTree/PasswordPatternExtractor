@@ -16,6 +16,7 @@ import Markov_Attempt.Association_Predicting_Markov as Association_markov
 import Markov_Attempt.Utils as mem_utils
 import collections
 import Markov_Attempt.treeForMarkov as tree
+from operator import itemgetter
 from collections import deque
 
 class config_mock():
@@ -391,51 +392,6 @@ class Create_Password_Guesses(collections.Iterator):
                 self.m.predict(substring[1], answer)
                 association_predictions = self.association_prediction_markov.predict(substring[1])
 
-
-
-
-                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                #To test uniqueness of association
-                '''
-
-                #print("I'm the charbag")
-                #print( self.association_prediction_markov.charbag)
-                #print("I'm the charbag")
-                '''
-                '''
-                answer_1 = np.zeros((len(self.config.char_bag)), dtype=np.float64)
-
-                self.m.predict(substring[1], answer_1)
-                char_probs_1 = self.probabilityToChar(self.m.alphabet, answer_1, substring)
-
-
-                for prob in char_probs_1:
-                    pass_made = substring[1] + prob[0]
-
-                    #if "\n" in pass_made:
-                    self.char_pass.append(pass_made)
-
-                for prob in association_predictions:
-                    pass_made = substring[1] + prob[0]
-
-                    #if "\n" in pass_made:
-                    self.assocation_pass.append(pass_made)
-            
-                '''
-
-
-
-
-                # To test uniqueness of association
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-
-
-
-
                 #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, substring)
                 prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
                 for prediction in prediction_dict.items():
@@ -463,13 +419,6 @@ class Create_Password_Guesses(collections.Iterator):
     def generatePasswords(self):
         passwords = []
         #print("ran once")
-        '''
-        next_password = get_next(7)  # Next password might not be the complete guess
-        if "\n" in next_password[0][1]:
-            prob = next_password[0][0]
-            formatted_password = next_password[0][1]
-            passwords.append((prob, formatted_password))
-        '''
         try:
             while True:
                 next_password = self.get_next() #Next password might not be the complete guess
@@ -626,7 +575,7 @@ class Create_Password_Guesses(collections.Iterator):
                     a = next_string[-1:]
                     #print("sadasdas")
 
-                    completed_passwords.append(next_string)
+                    completed_passwords.append((next_prob,next_string))
                     #count_1 += 1
                     #meh = count_1 / 25000 * 100
                     #print(str((count_1 / 25000) * 100) + "%")
@@ -673,13 +622,13 @@ class Create_Password_Guesses(collections.Iterator):
 
         count_1 =0
         completed_passwords = []
-        to_work = self.predict_next_substring(char,assoc,start_point, 1, False)
+        to_work = self.predict_next_substring(char,assoc,start_point, 1, True)
         next =[]
         while to_work != []:
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
                 for i in next_prediction:
                     #if(len(i[1])-2 <= max_pwd_length):
                     #next.append(i)
@@ -695,7 +644,7 @@ class Create_Password_Guesses(collections.Iterator):
                 if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):
 
 
-                    completed_passwords.append(next_string)
+                    completed_passwords.append((next_prob,next_string))
                     #count_1 += 1
                     #meh = count_1 / 25000 * 100
                     #print(str((count_1 / 25000) * 100) + "%")
@@ -703,13 +652,13 @@ class Create_Password_Guesses(collections.Iterator):
                 else:
                     #a =None
                     #b = None
-                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
+                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
                     for i in next_prediction:
                         #if meh > 19.84:
                         #    print(len(next_prediction))
 
                         if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
-                            completed_passwords.append(i[1])
+                            completed_passwords.append((i[0],i[1]))
 
                         elif(len(i[1])-2 <= max_pwd_length):
                             to_work.append(i)
@@ -729,13 +678,56 @@ class Create_Password_Guesses(collections.Iterator):
         for file in text_files:
             with open(file) as text_file:
                 list_from_disk = json.loads(text_file.read())
-                print(list_from_disk)
+                #print(list_from_disk)
                 training_data = training_data + list_from_disk
 
         #TODO: Modify this. For the sake of temporary testing this is fine. But needs to be updated for the full dataset. n
 
-        with open("char_distributed.txt", "w+") as file:
+        with open("unsorted_passwords.txt", "w+") as file:
             file.write(json.dumps(training_data))
+
+    def sort_generated_passwords(self):
+        with open("unsorted_passwords.txt", "r") as text_file:
+             to_sort = json.loads(text_file.read())
+
+        to_sort.sort(key=itemgetter(0), reverse = True)
+
+        '''
+
+        with open("sorted_passwords.txt", "w")as text_file:
+            text_file.write("[")
+            count = 0
+            for item in to_sort:
+                count +=1
+                text_file.write("[\""+ str(item[1]) + "\"," + str(count) + "]")
+                if count != len(to_sort):
+                    text_file.write(",")
+            text_file.write("]")
+
+        '''
+        #with open("sorted_passwords_1.txt", "w")as text_file:
+        #    text_file.write(json.dumps(to_sort))
+
+
+        for i in range(0,len(to_sort)):
+            to_sort[i][0] = i+1
+
+
+
+
+
+
+
+
+
+
+
+        with open("sorted_passwords_2.txt", "w")as text_file:
+            text_file.write(json.dumps(to_sort))
+
+
+    #distributed approach to writing to disk
+    #def write_password_to_disk(self, password):
 
 
 
@@ -784,8 +776,11 @@ class Create_Password_Guesses(collections.Iterator):
         end = time.time()
         print(end - start)
 
-
-
+        print("Time to sort passwords, and rewrite them to disk")
+        start = time.time()
+        self.sort_generated_passwords()
+        end = time.time()
+        print(end - start)
 
 
 '''
