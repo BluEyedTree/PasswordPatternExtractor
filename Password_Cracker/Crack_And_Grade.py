@@ -7,7 +7,8 @@ import Markov_Attempt.Runner
 import time
 import json
 from multiprocessing import Pool
-
+import xxhash
+import hashlib
 import os
 import copy
 Markov_Attempt.Runner
@@ -210,7 +211,7 @@ print(end - start)
 
 
 start = time.time()
-
+print("asdasdas")
 #a = tom.get_passwords_no_recursion("",2)
 #with open("assoc+char_noTree.txt", "w+") as file:
 #    file.write(str(a))
@@ -220,9 +221,12 @@ start = time.time()
 #end = time.time()
 
 tom.distributed_generate_passwords()
+
+
+
+
 end = time.time()
 print(end - start)
-
 
 
 

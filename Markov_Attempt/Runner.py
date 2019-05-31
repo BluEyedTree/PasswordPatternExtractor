@@ -4,6 +4,8 @@ from multiprocessing import Pool
 import multiprocessing
 import glob
 import json
+import struct
+import hashlib
 from unittest.mock import Mock, MagicMock
 import numpy as np
 import sys
@@ -679,12 +681,34 @@ class Create_Password_Guesses(collections.Iterator):
             with open(file) as text_file:
                 list_from_disk = json.loads(text_file.read())
                 #print(list_from_disk)
+                # TODO: Modify this. For the sake of temporary testing this is fine. But needs to be updated for the full dataset. n
                 training_data = training_data + list_from_disk
 
-        #TODO: Modify this. For the sake of temporary testing this is fine. But needs to be updated for the full dataset. n
 
+        #TODO: Remove this redundant step later on with larger datasets.
         with open("unsorted_passwords.txt", "w+") as file:
             file.write(json.dumps(training_data))
+
+
+    def get_pass_hash(self, password):
+        arr = bytes(password, 'utf-8')
+        hash = hashlib.md5(arr).digest()
+        num = int.from_bytes(hash,"little")
+        string_num = str(num)
+        return string_num
+
+
+
+    def write_passwords_to_disk(self, passwords, number_of_files):
+
+
+        for i in passwords:
+            file_name = self.get_pass_hash(i[1])
+            file_name_final = file_name[-number_of_files:]+".txt"
+
+
+            with open("final_formatted_password_store/"+file_name_final, "a") as file:
+                file.write(str(i) + "\n")
 
     def sort_generated_passwords(self):
         with open("unsorted_passwords.txt", "r") as text_file:
@@ -692,19 +716,6 @@ class Create_Password_Guesses(collections.Iterator):
 
         to_sort.sort(key=itemgetter(0), reverse = True)
 
-        '''
-
-        with open("sorted_passwords.txt", "w")as text_file:
-            text_file.write("[")
-            count = 0
-            for item in to_sort:
-                count +=1
-                text_file.write("[\""+ str(item[1]) + "\"," + str(count) + "]")
-                if count != len(to_sort):
-                    text_file.write(",")
-            text_file.write("]")
-
-        '''
         #with open("sorted_passwords_1.txt", "w")as text_file:
         #    text_file.write(json.dumps(to_sort))
 
@@ -712,23 +723,7 @@ class Create_Password_Guesses(collections.Iterator):
         for i in range(0,len(to_sort)):
             to_sort[i][0] = i+1
 
-
-
-
-
-
-
-
-
-
-
-        with open("sorted_passwords_2.txt", "w")as text_file:
-            text_file.write(json.dumps(to_sort))
-
-
-    #distributed approach to writing to disk
-    #def write_password_to_disk(self, password):
-
+        self.write_passwords_to_disk(to_sort,2)
 
 
 
@@ -781,162 +776,3 @@ class Create_Password_Guesses(collections.Iterator):
         self.sort_generated_passwords()
         end = time.time()
         print(end - start)
-
-
-'''
-print("----")
-print(generatePasswords())
-print("----")
-'''
-
-
-
-
-'''
-print("Starting test below")
-
-
-
-
-#a = Association_markov.Association_Prediction_Markov(5)
-a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-print("/////")
-print(a.predict("\t3456712"))
-print("/////")
-
-#ab= Association_Predicting_Markov_2.test()
-#a = Association_Predicting_Markov_2.Association_Prediction_Markov()
-#a.update_charbag("1234567")
-#print(a.charbag)
-
-#a = Markov_Attempt.Association_Predicting_Markov.PASSWORD_START
-
-
-
-
-
-print("Starting large scale test")
-start_time = time.time()
-
-
-
-
-'''
-
-'''
-print("!!!!")
-a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-
-c = a.freq_dict
-
-#answer = a.predict("s34a")
-#charbag, probabilities, current_word
-#print("Guess s34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-#answer = a.predict("567")
-#charbag, probabilities, current_word
-#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-answer = a.predict("567a")
-#charbag, probabilities, current_word
-#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-
-answer = a.predict("567b")
-#charbag, probabilities, current_word
-#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-answer = a.predict("\tv")
-#charbag, probabilities, current_word
-#print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-answer = a.predict("567d")
-'''
-#charbag, probabilities, current_word
-'''
-print("Guess 567" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-for i in list(string.printable):
-answer = a.predict("567"+str(i))
-# charbag, probabilities, current_word
-print("Guess 567 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-
-for i in list(string.printable):
-answer = a.predict("34"+str(i))
-# charbag, probabilities, current_word
-print("Guess 34 " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-
-
-for i in list(string.printable):
-answer = a.predict("hl"+str(i))
-# charbag, probabilities, current_word
-print("Guess hl " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-
-
-for i in list(string.printable):
-answer = a.predict("uv"+str(i))
-# charbag, probabilities, current_word
-print("Guess uv " + str(i) + " " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-
-
-for i in list(string.printable):
-answer = a.predict("uv"+str(i) +str(i))
-# charbag, probabilities, current_word
-print("Guess uv " + str(i) + str(i) +" " + str(probabilityToChar(a.charbag, answer, "Irrelavant arg")))
-
-print ("Large Scale test took: ", time.time() - start_time, "s to run")
-
-
-
-answer = a.predict("34a")
-#charbag, probabilities, current_word
-print("Guess 34a" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-answer = a.predict("34")
-#charbag, probabilities, current_word
-print("Guess 34" + str(probabilityToChar(a.charbag,answer,"Irrelavant arg")))
-
-
-
-print("!!!!")
-
-
-
-a = Association_markov.Association_Prediction_Markov(8,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-answer = a.predict("3456")
-#charbag, probabilities, current_word
-print("Guess 34" + str(answer))
-
-'''
-
-'''
-class Create_Password_Guesses:
-    def __init__(self, training_data_path, association_rule_path, char_markov_order, char_assocation_order, max_pwd_len):
-'''
-#Markov_Attempt.Runner.Create_Password_Guesses("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt", "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8, 11)
-#'''
-'''
-for i in Create_Password_Guesses("/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1.txt", "/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8, 11):
-    print("From loop")
-    print(i)
-'''
-'''
-tom =Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/Use_me.txt",
-"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 4, 8,
-11)
-'''
-
-
-'''
-for i in tom.generatePasswords():
-    print(i)
-
-'''
-
-
-#Newly attempted Markov Building code
-'''
-
-'''
-
