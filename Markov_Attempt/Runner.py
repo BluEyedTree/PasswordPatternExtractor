@@ -646,7 +646,7 @@ class Create_Password_Guesses(collections.Iterator):
                 if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):
 
 
-                    completed_passwords.append((next_prob,next_string))
+                    completed_passwords.append((next_prob,next_string.strip()))
                     #count_1 += 1
                     #meh = count_1 / 25000 * 100
                     #print(str((count_1 / 25000) * 100) + "%")
@@ -660,7 +660,8 @@ class Create_Password_Guesses(collections.Iterator):
                         #    print(len(next_prediction))
 
                         if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
-                            completed_passwords.append((i[0],i[1]))
+
+                            completed_passwords.append((i[0],i[1].strip()))
 
                         elif(len(i[1])-2 <= max_pwd_length):
                             to_work.append(i)
