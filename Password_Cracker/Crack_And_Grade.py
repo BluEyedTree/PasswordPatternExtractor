@@ -50,7 +50,7 @@ def find_number_guesses(password, order_number_files=2):
             if (password == password_from_file):
                 count_found = count
                 password_from_file_found = password_from_file
-                print(count_found,password_from_file_found)
+
 
 
     with open("graded_password/"+file_name_final, "a") as file:
@@ -70,7 +70,6 @@ def calculateParallel(test_file="test_file.txt", threads=multiprocessing.cpu_cou
 
 
     with Pool(threads) as p:
-        #results = p.map(find_number_guesses, passwords)
         p.map(find_number_guesses, passwords)
 
 
@@ -134,9 +133,9 @@ start = time.time()
 print("asdasdas")
 #a = tom.get_passwords_no_recursion("\t",2)
 
-#tom.distributed_generate_passwords()
-#[497, 'kel']
-find_number_guesses("kel")
+tom.distributed_generate_passwords()
+
+calculateParallel(test_file="test_file.txt")
 
 
 

@@ -27,7 +27,7 @@ class config_mock():
 
 
 
-class Create_Password_Guesses(collections.Iterator):
+class Create_Password_Guesses():
 
     def __init__(self, training_data_path=None, association_rule_path=None, char_markov_order=None, char_assocation_order=None, max_pwd_len=None, initilize_here = False):
         self.char_markov_order = char_markov_order
@@ -55,66 +55,18 @@ class Create_Password_Guesses(collections.Iterator):
         sys.setrecursionlimit(50000)
 
 
-        #TODO: REMOVE THIS. Its only to test the association Markov.
-        self.assocation_pass = []
-        self.char_pass = []
-        # TODO: REMOVE THIS. Its only to test the association Markov.
-
+        #THis if/else might be worthless, but removing it would force me to refactor :(
         if initilize_here:
             self.m = Markov.MarkovModel(self.config, smoothing='none', order= self.char_markov_order)
             self.m.train(self.training_data)
             self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=True)
             self.association_prediction_markov.train()
-            #self.initialize_first_current_layer()
-
-
 
 
         else:
             self.m = None
             self.association_prediction_markov = None
         self.association_guesses = []
-
-
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-
-        try:
-            next_password = self.get_next()  # Next password might not be the complete guess
-            if "\n" in next_password[0][1]:
-                prob = next_password[0][0]
-                formatted_password = next_password[0][1].strip()
-                #print("from Iterator")
-                return formatted_password
-                # passwords.append((prob,formatted_password))
-        except:
-            raise StopIteration
-
-
-    def set_values(self, training_data, source_char_markov_model, source_injection_markov_model, association_rules=None, association_rule_path=None):
-        self.training_data = training_data
-        self.association_rule_path = association_rule_path
-        self.association_rules = association_rules
-
-        #Create Local char Markov
-        self.m = Markov.MarkovModel(self.config, smoothing='none', order=self.char_markov_order)
-        self.m.freq_dict = source_char_markov_model.freq_dict
-        self.m.config = source_char_markov_model.config
-        self.m.alphabet = source_char_markov_model.alphabet
-        self.m.configure_smoother()
-        #self.m.train(self.training_data)
-
-
-        self.association_prediction_markov = Association_markov.Association_Prediction_Markov(self.max_pwd_len, self.training_data, self.association_rule_path, do_train=False)
-        self.association_prediction_markov.freq_dict = source_injection_markov_model.freq_dict
-        #self.association_prediction_markov.config = source_injection_markov_model.config
-        #self.association_prediction_markov.alphabet = source_injection_markov_model.alphabet
-        self.current_layer = []
-        self.to_pop = []
-        self.initialize_first_current_layer()
 
 
     def create_new_models(self):
@@ -309,190 +261,10 @@ class Create_Password_Guesses(collections.Iterator):
     def probabilityToChar(self, charbag, probabilities, current_word):
         char_probs = {}
 
-        #Below are the lines I started using to implement random insertion of association rules.
-        #For now leave it, and add better stats based approach later.
-        '''
-    
-        assocation_rules_satisfied = find_first_part_association_rules_for_string(current_word)
-        total_association_confidence = 0
-        add_substring_to_add_association_rule = False
-        association_string_to_add = []
-        
-        if(assocation_rules_satisfied != []):
-            for rule in assocation_rules_satisfied:
-                if (rule[0] in current_word and rule[1] not in current_word): #Want to guess it if the second part is not all ready in the word.
-                    total_association_confidence += association_rules[rule[0]][rule[1]]
-    
-        '''
         for i in enumerate(probabilities):
             if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
                 char_probs[charbag[i[0]]] = i[1]
         return char_probs
-
-
-    #Below are a bunch of configurations for the markov model.
-    #TODO: Pull all this out and have it be configurable.
-    '''
-    config = Mock()
-    white_space_chars = set(string.whitespace)
-    all_chars = b = set(string.printable)
-    chars_to_use = list(all_chars - white_space_chars)
-    chars_to_use = "".join(chars_to_use)
-
-
-    config.char_bag = list(pg.PASSWORD_END +pg.PASSWORD_START + chars_to_use)
-    m = Markov.MarkovModel(config, smoothing='none', order=4)
-    #m.train([('\tpass+A', 5), ('\tpast', 1), ('\tashen', 1), ('\tas&^R$s', 1), ('\tbl+ah', 1),('\tbl+ahs', 1),('\tblhma', 1), ('\tblmag', 1)])
-    m.train(training_data)
-    
-
-    print(m.freq_dict)
-    #answer = np.zeros((len(config.char_bag), ), dtype=np.float64)
-    #m.predict('', answer)
-
-    #probabilityToChar(config.char_bag, {}, "c123")
-    '''
-    def pop_max(self, input_list):
-        list1 = [input_list.pop(input_list.index(max(input_list)))]
-        return list1
-
-    '''
-    Initalize first layer creates the first layer you want for you markov tree. 
-    It currently starts creating string from the empty string
-    '''
-
-    #The two vars below are used in the getNext function
-    #current_layer = []
-    #to_pop = []
-    def initialize_first_current_layer(self):
-        answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
-        a= self.m
-        self.m.predict("", answer)
-        prediction_dict = self.probabilityToChar(self.m.alphabet, answer, "")
-
-
-        for key in prediction_dict.keys():
-            self.current_layer.append((prediction_dict[key],key))
-    '''
-    Calling this function returns you the next prediction. 
-    '''
-    #TODO: The current method creates a lot of duplicates
-    #association_prediction_markov = Association_markov.Association_Prediction_Markov(10,training_data,"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt")
-    #association_guesses = []
-
-
-
-    def get_next(self):
-        if self.to_pop != []:
-            return self.pop_max(self.to_pop)
-        else:
-            new_current = []
-            for substring in self.current_layer:
-                answer = np.zeros((len(self.config.char_bag)), dtype=np.float64)
-                #if not any(substring in word for word in to_pop):   An initial attempt to remove duplicates, but it doesn't really work as the two markov models arrive at the same conclusions independently
-                self.to_pop.append(substring)
-                self.m.predict(substring[1], answer)
-                association_predictions = self.association_prediction_markov.predict(substring[1])
-
-                #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, substring)
-                prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, substring), **association_predictions}
-                for prediction in prediction_dict.items():
-                    to_add_word = substring[1] + prediction[0]
-                    markov_prob = prediction[1]
-                    #The substring weighting was seen as redundant and removed.
-                    #substring_prob = add_common_substring_to_prob(substring[1], prediction[0],  100000)  # Adds substring probabilities
-
-                    #TODO: Speed these up. BIG PROBLEM
-                    association_prob = 0#self.add_assocation_rules_to_prob(substring[1], prediction[0])
-                    regex_prob = 0#self.add_common_regex_to_prob(substring[1], prediction[0])
-
-                    weighted_average_probs = self.calculate_weighted_average(markov_prob, association_prob ,regex_prob , 1, 0, 0) #TODO: Update this so it is no longer hard coded
-                    to_add_prob = substring[0] * weighted_average_probs #Mulitplies the current probability with that of the parent
-                    if ((len(to_add_word) <= self.max_pwd_len +2)): #Because the start and end chars each have an extra char. So 2 extra total by traditional python string length counting
-                        #if not any(to_add_word in  word for word in new_current): SAME ATTEMPT AT removing duplicates as shown above
-                        new_current.append((to_add_prob,to_add_word))
-        self.current_layer = new_current
-        return self.pop_max(self.to_pop)
-
-
-    #TODO: This probably needs to write to the mongoDB, or batch write a text file. All passwords should probably be made before the testing stage.
-    #TODO: REMOVE THIS COMMENT LATER
-    #initialize_first_current_layer()
-    def generatePasswords(self):
-        passwords = []
-        #print("ran once")
-        try:
-            while True:
-                next_password = self.get_next() #Next password might not be the complete guess
-                if "\n" in next_password[0][1]:
-                    prob = next_password[0][0]
-                    formatted_password = next_password[0][1].strip()
-                    yield formatted_password
-                    #passwords.append((prob,formatted_password))
-        except:
-            for i in passwords:
-                print(i)
-            #return passwords
-
-
-    #Test of old method
-
-
-
-    def markovBuilder(self, currentNode, maxPasswordLength=4):
-        config = Mock()
-
-
-        #config.char_bag = pg.PASSWORD_END + 'abcdefghiklmnopqrst' + pg.PASSWORD_START + "ABCDEFGHIJKLMNOPQRSTRUV"
-        answer = np.zeros((len(self.config.char_bag),), dtype=np.float64)
-        if ("\n" not in currentNode.value and len(currentNode.value) <= maxPasswordLength):
-            # m.predict(currentNode.value, answer)
-            # char_to_add = probabilityToChar(m.alphabet, answer)
-            self.m.predict(currentNode.value, answer)
-            association_predictions = self.association_prediction_markov.predict(currentNode.value)
-
-            prediction_dict = {**self.probabilityToChar(self.m.alphabet, answer, currentNode.value), **association_predictions}
-            #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, currentNode.value)
-            predict_items = prediction_dict.items()
-            #print(prediction_dict)
-
-            #prediction_dict = self.probabilityToChar(self.m.alphabet, answer, currentNode.value)
-            for char, probability in predict_items:
-
-                newString = currentNode.value + char
-                newProbability = probability * currentNode.priority  # Multiplies the current probability with the parents. This way all the probabilties used to generate each string are taken into account
-                #print(newString)
-                new_node_to_add = tree.Node(newString, newProbability)
-                currentNode.add_child(new_node_to_add)
-
-            #currentNode.value = None
-            #currentNode.priority = None
-
-            #TODO: make the call without the sorting, this is really slowing thrings down!!!
-            #for child in currentNode.getChildren():
-            for child in  currentNode.children:
-                self.markovBuilder(child)
-
-
-    def getPasswords(self):
-        print("Size of the markov builder")
-
-        self.markovBuilder(self.root_node)
-
-
-        def getPasswords_1(node):
-            if (node.getChildren() != []):
-                for sibling in node.getChildren():
-                   getPasswords_1(sibling)
-            else:
-                if(node.value is not None):
-                    if("\n" in node.value):
-                        self.passwords.append(node.value)
-
-        getPasswords_1(self.root_node)
-
-        print("!!!!!")
-        #print(self.passwords)
 
 
     def predict_next_substring(self,char, assoc, current_value, current_priority,  use_assocation_rules=False):
