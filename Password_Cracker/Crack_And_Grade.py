@@ -45,7 +45,7 @@ def find_number_guesses(password, order_number_files=2):
 
     with open("final_formatted_password_store/" + file_name_final, "r") as file:
         for line in file:
-            count, password_from_file = extract_password_and_count(line)
+            count, password_from_file = json.loads(line)
             if (password == password_from_file):
                 count_found = count
                 password_from_file_found = password_from_file
@@ -61,11 +61,11 @@ def find_number_guesses(password, order_number_files=2):
 
 
 # function to be mapped over
-def calculateParallel(test_file="test_file.txt", threads=multiprocessing.cpu_count()):   #Thread number should really be: threads=multiprocessing.cpu_count()
+def calculateParallel(test_file="test_data.txt", threads=multiprocessing.cpu_count()):   #Thread number should really be: threads=multiprocessing.cpu_count()
     passwords = []
     with open(test_file, "r") as file:
         for line in file:
-            passwords.append(line[:-1])
+            passwords.append("\t"+line[:-1])
 
 
     with Pool(threads) as p:

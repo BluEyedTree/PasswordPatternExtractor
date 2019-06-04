@@ -366,6 +366,7 @@ class Create_Password_Guesses():
 
                         if(i[1][-1:] == "\n"and len(i[1])-2 <= max_pwd_length):
                             print("1" + i[1])
+
                             completed_passwords.append(i[1])
 
                         elif(len(i[1])-2 <= max_pwd_length):
@@ -395,69 +396,73 @@ class Create_Password_Guesses():
 
 
     # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
-    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=11):
-
-        count_1 =0
+    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=10):
+        start = time.time()
+        total = 0
         completed_passwords = []
         to_work = self.predict_next_substring(char,assoc,start_point, start_prob, True)
         print("started: " + str(os.getpid()))
         next =[]
         while to_work != []:
+
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
                 next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+
                 for i in next_prediction:
-                    #if(len(i[1])-2 <= max_pwd_length):
-                    #next.append(i)
-                    if (len(i[1]) - 2 <= max_pwd_length):
+
+
+                    if (i[1][-1:] == "\n" and len(i[1]) - 2 <= max_pwd_length):
+                        total += 1
+                        completed_passwords.append((next_prob,next_string))
+                        if total > Markov_Attempt.Configuration_Values.number_passwords_to_make:
+                            with open("generated_password_store/" + str(start_point.strip()) + ".txt", "w+") as file:
+                                file.write(json.dumps(completed_passwords))
+                            end = time.time()
+                            print("Done: " + str(os.getpid()) + " " + str(end - start) + "s")
+                            return
+
+
+                    elif (len(i[1]) - 2 <= max_pwd_length):
                         next.append(i)
-            #print(to_work)
+
+
             to_work.clear()
-            meh =0
             for node in next:
                 next_string = node[1]
                 next_prob = node[0]
-                #IS IT? #BROKEN HERE
-                if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):
-                    '''
-                    if(len(completed_passwords)>5000):
-                        with open("generated_password_store/" + str(start_point) + ".txt", "a") as file:
-                            file.write(json.dumps(completed_passwords))
-                            completed_passwords.clear()
-                    '''
-                    completed_passwords.append((next_prob,next_string.strip()))
-                    #count_1 += 1
-                    #meh = count_1 / 25000 * 100
-                    #print(str((count_1 / 25000) * 100) + "%")
 
-                else:
-                    #a =None
-                    #b = None
-                    next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
-                    for i in next_prediction:
-                        #if meh > 19.84:
-                        #    print(len(next_prediction))
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
 
-                        if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
-                            '''
-                            if (len(completed_passwords) > 5000):
-                                with open("generated_password_store/" + str(start_point) + ".txt", "a") as file:
-                                    file.write(json.dumps(completed_passwords))
-                                    completed_passwords.clear()
-                            '''
-                            completed_passwords.append((i[0],i[1].strip()))
+                for i in next_prediction:
 
-                        elif(len(i[1])-2 <= max_pwd_length):
-                            to_work.append(i)
+                    if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
+                        total += 1
+                        completed_passwords.append((next_prob, next_string))
+                        if total > Markov_Attempt.Configuration_Values.number_passwords_to_make:
+                            with open("generated_password_store/" + str(start_point.strip()) + ".txt", "w+") as file:
+                                file.write(json.dumps(completed_passwords))
+                            end = time.time()
+                            print("Done: " + str(os.getpid()) + " " +str(end-start)+"s")
+                            return
 
-            #print(next)
+
+
+                    elif(len(i[1])-2 <= max_pwd_length):
+                        to_work.append(i)
+
+
+
+            #print("TO WORK\n\n\n" )
+            #print(len(to_work))
+
             next.clear()
 
-        with open("generated_password_store/"+str(start_point)+".txt", "w+") as file:
-            file.write(json.dumps(completed_passwords))
+
+
         #print(completed_passwords)
-        print("Done: " + str(os.getpid()))
+
 
 
     def combine_generated_passwords(self):
@@ -494,7 +499,7 @@ class Create_Password_Guesses():
 
 
             with open("final_formatted_password_store/"+file_name_final, "a") as file:
-                file.write(str(i) + "\n")
+                file.write(json.dumps(i) + "\n")
 
     def sort_generated_passwords(self):
         with open("unsorted_passwords.txt", "r") as text_file:
@@ -520,12 +525,16 @@ class Create_Password_Guesses():
 
         #self.predict_next_substring(char, assoc, next_string, next_prob, True)
 
-        first_layer_nodes = self.predict_next_substring(char_first, assoc_first, "\t", 1, True)
-
+        #first_layer_nodes = self.predict_next_substring(char_first, assoc_first, "\t", 1, False)
+        import string
         first_layer = []
         #FIRST LAYER OF TREE
-        for node in first_layer_nodes:
-            first_layer.append(node)
+        white_space_chars = set(string.whitespace)
+        all_chars = set(string.printable)
+        chars_to_use = list(all_chars - white_space_chars)
+        chars_to_use = "".join(chars_to_use)
+        for string in chars_to_use:
+            first_layer.append("\t"+string)
         '''
         # (prob,word)
         next_layer = []
@@ -554,8 +563,8 @@ class Create_Password_Guesses():
         for i in first_layer:
             char, assoc = self.create_new_models()
             # char, assoc, start_point, start_prob,
-            prob = i[0]
-            password = i[1]
+            prob = 1
+            password = i
             args.append((char,assoc,password,prob))
 
         end = time.time()
@@ -566,7 +575,8 @@ class Create_Password_Guesses():
 
         start = time.time()
         #Used to be multiprocessing.cpu_count(). Was dropped to 12 due to excessive RAM usage
-        with Pool(1) as p:
+        #print(args)
+        with Pool(14) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)
