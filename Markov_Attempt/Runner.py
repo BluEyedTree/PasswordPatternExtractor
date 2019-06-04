@@ -576,7 +576,7 @@ class Create_Password_Guesses():
         start = time.time()
         #Used to be multiprocessing.cpu_count(). Was dropped to 12 due to excessive RAM usage
         #print(args)
-        with Pool(14) as p:
+        with Pool(multiprocessing.cpu_count()) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)
