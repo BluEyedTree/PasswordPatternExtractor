@@ -20,7 +20,8 @@ import collections
 import Markov_Attempt.treeForMarkov as tree
 from operator import itemgetter
 from collections import deque
-
+import Markov_Attempt.Configuration_Values
+import os
 class config_mock():
     def __init__(self):
         self.charbag = []
@@ -262,7 +263,7 @@ class Create_Password_Guesses():
         char_probs = {}
 
         for i in enumerate(probabilities):
-            if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
+            if i[1] > Markov_Attempt.Configuration_Values.probability_cutoff and i[1] != math.inf and not np.isnan(i[1]):
                 char_probs[charbag[i[0]]] = i[1]
         return char_probs
 
@@ -343,12 +344,13 @@ class Create_Password_Guesses():
                 next_string = node[1]
                 next_prob = node[0]
                 #IS IT? #BROKEN HERE
+                print("TEST: " + next_string)
                 if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):#and len(next_string)-2 <= max_pwd_length):
                     #print("sadasdas")
                     #print(next_string[-1:])
                     a = next_string[-1:]
                     #print("sadasdas")
-
+                    print("1: "  + next_string)
                     completed_passwords.append((next_prob,next_string))
                     #count_1 += 1
                     #meh = count_1 / 25000 * 100
@@ -363,6 +365,7 @@ class Create_Password_Guesses():
                         #    print(len(next_prediction))
 
                         if(i[1][-1:] == "\n"and len(i[1])-2 <= max_pwd_length):
+                            print("1" + i[1])
                             completed_passwords.append(i[1])
 
                         elif(len(i[1])-2 <= max_pwd_length):
@@ -392,11 +395,12 @@ class Create_Password_Guesses():
 
 
     # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
-    def get_passwords_no_recursion(self, char, assoc, start_point, max_pwd_length=4):
+    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=11):
 
         count_1 =0
         completed_passwords = []
-        to_work = self.predict_next_substring(char,assoc,start_point, 1, True)
+        to_work = self.predict_next_substring(char,assoc,start_point, start_prob, True)
+        print("started: " + str(os.getpid()))
         next =[]
         while to_work != []:
             for node in to_work:
@@ -416,8 +420,12 @@ class Create_Password_Guesses():
                 next_prob = node[0]
                 #IS IT? #BROKEN HERE
                 if (next_string[-1:] == "\n" and len(next_string)-2 <= max_pwd_length):
-
-
+                    '''
+                    if(len(completed_passwords)>5000):
+                        with open("generated_password_store/" + str(start_point) + ".txt", "a") as file:
+                            file.write(json.dumps(completed_passwords))
+                            completed_passwords.clear()
+                    '''
                     completed_passwords.append((next_prob,next_string.strip()))
                     #count_1 += 1
                     #meh = count_1 / 25000 * 100
@@ -432,7 +440,12 @@ class Create_Password_Guesses():
                         #    print(len(next_prediction))
 
                         if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
-
+                            '''
+                            if (len(completed_passwords) > 5000):
+                                with open("generated_password_store/" + str(start_point) + ".txt", "a") as file:
+                                    file.write(json.dumps(completed_passwords))
+                                    completed_passwords.clear()
+                            '''
                             completed_passwords.append((i[0],i[1].strip()))
 
                         elif(len(i[1])-2 <= max_pwd_length):
@@ -444,7 +457,7 @@ class Create_Password_Guesses():
         with open("generated_password_store/"+str(start_point)+".txt", "w+") as file:
             file.write(json.dumps(completed_passwords))
         #print(completed_passwords)
-
+        print("Done: " + str(os.getpid()))
 
 
     def combine_generated_passwords(self):
@@ -510,17 +523,40 @@ class Create_Password_Guesses():
         first_layer_nodes = self.predict_next_substring(char_first, assoc_first, "\t", 1, True)
 
         first_layer = []
-
+        #FIRST LAYER OF TREE
         for node in first_layer_nodes:
-            first_layer.append(node[1])
+            first_layer.append(node)
+        '''
+        # (prob,word)
+        next_layer = []
+        #SECOND LAYER OF TREE
+        for prob, password in first_layer_nodes:
 
+            predictions = self.predict_next_substring(char_first, assoc_first, password, prob, True)
+            for prediction in predictions:
+                next_layer.append(prediction)
+
+
+        first_layer.clear()
+
+        #THIRD LAYER OF TREE
+        for prob, password in next_layer:
+            predictions = self.predict_next_substring(char_first, assoc_first, password, prob, True)
+            for prediction in predictions:
+                first_layer.append(prediction)
+
+        #First layer now actually has up to the third layer of the tree
+        next_layer.clear()
+        '''
         args = []
 
         start = time.time()
-        for i in range(len(first_layer)):
+        for i in first_layer:
             char, assoc = self.create_new_models()
-
-            args.append((char,assoc,first_layer[i]))
+            # char, assoc, start_point, start_prob,
+            prob = i[0]
+            password = i[1]
+            args.append((char,assoc,password,prob))
 
         end = time.time()
         print("Time to make models")
@@ -529,7 +565,8 @@ class Create_Password_Guesses():
         #print([char_models, assoc_models, first_layer])
 
         start = time.time()
-        with Pool(multiprocessing.cpu_count()) as p:
+        #Used to be multiprocessing.cpu_count(). Was dropped to 12 due to excessive RAM usage
+        with Pool(1) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)

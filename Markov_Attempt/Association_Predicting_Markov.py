@@ -11,6 +11,9 @@ import math
 from multiprocessing import Process, Manager
 import json
 import glob
+import Markov_Attempt.Configuration_Values
+import multiprocessing
+
 
 
 
@@ -56,7 +59,7 @@ class Association_Prediction_Markov():
             orders.append(i)
 
 
-        with Pool(15) as p:
+        with Pool(multiprocessing.cpu_count()) as p:
             # results = p.map(find_number_guesses, passwords)
             p.map(self.train_Model, orders)
 
@@ -137,7 +140,7 @@ class Association_Prediction_Markov():
         char_probs = {}
 
         for i in enumerate(probabilities):
-            if i[1] != 0 and i[1] != math.inf and not np.isnan(i[1]):
+            if i[1] > Markov_Attempt.Configuration_Values.probability_cutoff and i[1] != math.inf and not np.isnan(i[1]):
                 char_probs[self.charbag[i[0]]] = i[1]
         return char_probs
 

@@ -1,5 +1,5 @@
 import os
-import psutil
+#import psutil
 from multiprocessing.pool import Pool
 import multiprocessing
 import Markov_Attempt.Runner
@@ -7,7 +7,6 @@ import Markov_Attempt.Runner
 import time
 import json
 from multiprocessing import Pool
-import xxhash
 import hashlib
 import os
 import copy
@@ -40,7 +39,7 @@ def find_number_guesses(password, order_number_files=2):
     count_found = None
     password_from_file_found = None
 
-    print("final_formatted_password_store/" + file_name_final)
+    #print("final_formatted_password_store/" + file_name_final)
     #Example file: [312, 'oveu']
 
 
@@ -89,8 +88,8 @@ start = time. time()
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
 
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
-"/Users/thomasbekman/Documents/Research/Passwords/Cracked_Passwords/1k.txt",
-"/Users/thomasbekman/Documents/Research/SpadeFiles/MinSup20000,MinConf0.1_HalfData/Patterns_halfData.txt", 3, 8,
+"train_data.txt",
+"/home/thomas/git/PasswordPatternExtractor/Data/Patterns_halfData.txt", 3, 8,
 11, True)
 
 
@@ -127,20 +126,23 @@ print(end - start)
 '''
 
 
-
-
 start = time.time()
-print("asdasdas")
+
 #a = tom.get_passwords_no_recursion("\t",2)
 
 tom.distributed_generate_passwords()
 
-calculateParallel(test_file="test_file.txt")
 
-
-
+start = time.time()
+calculateParallel(test_file="test_data.txt")
 end = time.time()
-#print(end - start)
+print("Time to Grade against test_data: ")
+print(end - start)
+
+print("")
+end = time.time()
+print("Total Time: ")
+print(end - start)
 
 
 
