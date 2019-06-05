@@ -400,7 +400,7 @@ class Create_Password_Guesses():
         start = time.time()
         total = 0
         completed_passwords = []
-        to_work = self.predict_next_substring(char,assoc,start_point, start_prob, True)
+        to_work = self.predict_next_substring(char,assoc,start_point, start_prob, False)
         print("started: " + str(os.getpid()))
         next =[]
         while to_work != []:
@@ -408,7 +408,7 @@ class Create_Password_Guesses():
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
 
                 for i in next_prediction:
 
@@ -433,7 +433,7 @@ class Create_Password_Guesses():
                 next_string = node[1]
                 next_prob = node[0]
 
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, True)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
 
                 for i in next_prediction:
 
@@ -576,7 +576,7 @@ class Create_Password_Guesses():
         start = time.time()
         #Used to be multiprocessing.cpu_count(). Was dropped to 12 due to excessive RAM usage
         #print(args)
-        with Pool(multiprocessing.cpu_count()) as p:
+        with Pool(multiprocessing.cpu_count()-2) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)
