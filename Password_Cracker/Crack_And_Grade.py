@@ -49,6 +49,7 @@ def find_number_guesses(password, order_number_files=2):
             if (password == password_from_file):
                 count_found = count
                 password_from_file_found = password_from_file
+                break
 
 
 
@@ -61,7 +62,7 @@ def find_number_guesses(password, order_number_files=2):
 
 
 # function to be mapped over
-def calculateParallel(test_file="test_data.txt", threads=multiprocessing.cpu_count()):   #Thread number should really be: threads=multiprocessing.cpu_count()
+def calculateParallel(test_file="test_data.txt", threads=8):   #Thread number should really be: threads=multiprocessing.cpu_count()
     passwords = []
     with open(test_file, "r") as file:
         for line in file:
@@ -86,12 +87,12 @@ def calculateParallel(test_file="test_data.txt", threads=multiprocessing.cpu_cou
 start = time. time()
 
 #markov_obj_meh = Markov_Attempt.Runner.Create_Password_Guesses(initilize_here=True, char_markov_order=4, char_assocation_order=8, max_pwd_len=11)
-
+'''
 tom = Markov_Attempt.Runner.Create_Password_Guesses(
 "train_data.txt",
 "/home/thomas/git/PasswordPatternExtractor/Data/Patterns_halfData.txt", 3, 8,
 11, True)
-
+'''
 
 #markov_obj_meh.set_values(training_data, char_markov_model, association_markov_model, association_rules, association_rule_path)
 #run_grading("/Users/thomasbekman/Documents/Research/Passwords/test_passwords/grading_test.txt")9
@@ -130,9 +131,9 @@ start = time.time()
 
 #a = tom.get_passwords_no_recursion("\t",2)
 
-tom.distributed_generate_passwords()
+#tom.distributed_generate_passwords()
 
-
+print("Started Grading")
 start = time.time()
 calculateParallel(test_file="test_data.txt")
 end = time.time()
