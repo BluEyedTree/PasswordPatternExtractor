@@ -396,11 +396,11 @@ class Create_Password_Guesses():
 
 
     # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
-    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=10):
+    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=Markov_Attempt.Configuration_Values.maximum_password_length):
         start = time.time()
         total = 0
         completed_passwords = []
-        to_work = self.predict_next_substring(char,assoc,start_point, start_prob, False)
+        to_work = self.predict_next_substring(char,assoc,start_point, start_prob, Markov_Attempt.Configuration_Values.use_association_markov)
         print("started: " + str(os.getpid()))
         next =[]
         while to_work != []:
@@ -408,7 +408,7 @@ class Create_Password_Guesses():
             for node in to_work:
                 next_string = node[1]
                 next_prob = node[0]
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, Markov_Attempt.Configuration_Values.use_association_markov)
 
                 for i in next_prediction:
 
@@ -433,7 +433,7 @@ class Create_Password_Guesses():
                 next_string = node[1]
                 next_prob = node[0]
 
-                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, False)
+                next_prediction = self.predict_next_substring(char, assoc, next_string, next_prob, Markov_Attempt.Configuration_Values.use_association_markov)
 
                 for i in next_prediction:
 
@@ -514,7 +514,7 @@ class Create_Password_Guesses():
         for i in range(0,len(to_sort)):
             to_sort[i][0] = i+1
 
-        self.write_passwords_to_disk(to_sort,2)
+        self.write_passwords_to_disk(to_sort,Markov_Attempt.Configuration_Values.order_of_number_of_files)
 
 
 
@@ -576,7 +576,7 @@ class Create_Password_Guesses():
         start = time.time()
         #Used to be multiprocessing.cpu_count(). Was dropped to 12 due to excessive RAM usage
         #print(args)
-        with Pool(multiprocessing.cpu_count()-2) as p:
+        with Pool(Markov_Attempt.Configuration_Values.number_threads_for_password_generation) as p:
             # results = p.map(find_number_guesses, passwords)
 
             p.starmap(self.get_passwords_no_recursion, args)

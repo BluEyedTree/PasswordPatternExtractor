@@ -1,4 +1,5 @@
 import ast
+import json
 
 def calculate_avg_length(iterable):
     total = 0
@@ -56,6 +57,9 @@ def find_Unique(assocation_pass_list, char_pass_list):
 
 
 char_list = []
+assoc_list = []
+
+'''
 with open("char_distributed.txt", "r") as f:
     char_list = ast.literal_eval(f.read())
 
@@ -65,9 +69,37 @@ with open("distributed.txt","r") as f:
 
     assoc_list = ast.literal_eval(f.read())
 
+'''
 
 
-find_Unique(assoc_list,char_list)
+for i in range(10,30):
+    char_num = str(i)
+    print(char_num)
+
+    print("")
+    print("")
+    '''
+    print(assoc_num)
+
+    print("")
+    print("")
+    '''
+
+    with open("/home/thomas/git/PasswordPatternExtractor/Password_Cracker/Store_1/final_formatted_password_store_bak_1/"+char_num+".txt", "r") as file:
+        for line in file:
+            count, password_from_file = json.loads(line)
+            assoc_list.append(password_from_file)
+
+    with open("/home/thomas/git/PasswordPatternExtractor/Password_Cracker/final_formatted_password_store/"+char_num+".txt", "r") as file:
+        for line in file:
+            count, password_from_file = json.loads(line)
+            char_list.append(password_from_file)
+
+
+
+    find_Unique(assoc_list,char_list)
+    char_list = []
+    assoc_list = []
 
 
 
