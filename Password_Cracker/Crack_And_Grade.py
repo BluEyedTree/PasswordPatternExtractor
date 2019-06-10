@@ -35,30 +35,33 @@ def extract_password_and_count(line):
     return number, removed_quotation_marks_password
 
 def find_number_guesses(password, order_number_files=2):
-    pass_hash = get_pass_hash(password)
-    file_name_final = pass_hash[-config_vals.order_of_number_of_files:] + ".txt"
-    count_found = None
-    password_from_file_found = None
+    try:
+        pass_hash = get_pass_hash(password)
+        file_name_final = pass_hash[-config_vals.order_of_number_of_files:] + ".txt"
+        count_found = None
+        password_from_file_found = None
 
-    #print("final_formatted_password_store/" + file_name_final)
-    #Example file: [312, 'oveu']
-
-
-    with open("final_formatted_password_store/" + file_name_final, "r") as file:
-        for line in file:
-            count, password_from_file = json.loads(line)
-            if (password == password_from_file):
-                count_found = count
-                password_from_file_found = password_from_file
-                break
+        #print("final_formatted_password_store/" + file_name_final)
+        #Example file: [312, 'oveu']
 
 
+        with open("final_formatted_password_store/" + file_name_final, "r") as file:
+            for line in file:
+                count, password_from_file = json.loads(line)
+                if (password == password_from_file):
+                    count_found = count
+                    password_from_file_found = password_from_file
+                    break
 
-    with open("graded_password/"+file_name_final, "a") as file:
-        if password_from_file_found is not None and count_found is not None:
-            file.write(str(count_found) + "," + password_from_file_found + "\n")
-        else:
-            file.write(str(0) + "," + password + "\n")
+
+
+        with open("graded_password/"+file_name_final, "a") as file:
+            if password_from_file_found is not None and count_found is not None:
+                file.write(str(count_found) + "," + password_from_file_found + "\n")
+            else:
+                file.write(str(0) + "," + password + "\n")
+    except:
+        pass
 
 
 
@@ -90,6 +93,7 @@ def Run_Everything():
     tom = Markov_Attempt.Runner.Create_Password_Guesses(
     config_vals.training_data_path,config_vals.association_rules_path
     , config_vals.order_char_markov, 8, 11, True)
+
     #8, 11 are not used. True needs to stay there it initializes the markov models
 
 
