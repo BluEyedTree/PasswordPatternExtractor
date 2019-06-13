@@ -396,7 +396,7 @@ class Create_Password_Guesses():
 
 
     # non-recursive approach, with minimal memory overhead. Needs to be sorted in the end.
-    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=Markov_Attempt.Configuration_Values.maximum_password_length):
+    def get_passwords_no_recursion(self, char, assoc, start_point, start_prob, max_pwd_length=Markov_Attempt.Configuration_Values.maximum_password_length, min_pwd_length=Markov_Attempt.Configuration_Values.minimum_password_length):
         start = time.time()
         total = 0
         completed_passwords = []
@@ -413,7 +413,7 @@ class Create_Password_Guesses():
                 for i in next_prediction:
 
 
-                    if (i[1][-1:] == "\n" and len(i[1]) - 2 <= max_pwd_length):
+                    if (i[1][-1:] == "\n" and len(i[1]) - 2 <= max_pwd_length and len(i[1]) - 2 >= min_pwd_length):
                         total += 1
                         completed_passwords.append((next_prob,next_string))
                         if total > Markov_Attempt.Configuration_Values.number_passwords_to_make:
@@ -437,7 +437,7 @@ class Create_Password_Guesses():
 
                 for i in next_prediction:
 
-                    if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length):
+                    if(i[1][-1:] == "\n" and len(i[1])-2 <= max_pwd_length and len(i[1]) - 2 >= min_pwd_length):
                         total += 1
                         completed_passwords.append((next_prob, next_string))
                         if total > Markov_Attempt.Configuration_Values.number_passwords_to_make:

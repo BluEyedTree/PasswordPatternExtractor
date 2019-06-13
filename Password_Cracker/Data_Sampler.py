@@ -27,4 +27,5 @@ def create_train_test_data(test_number, train_number, source_file):
 			file_to_write.write(line +"\n")
 
 
-create_train_test_data(1000000, 10000000,"/home/thomas/git/PasswordPatternExtractor/Data/UTF8_Formatted.txt")
+create_train_test_data(1500000, 7000000,"/home/thomas/git/PasswordPatternExtractor/Data/UTF8_Formatted.txt")
+#2 million works fine.
