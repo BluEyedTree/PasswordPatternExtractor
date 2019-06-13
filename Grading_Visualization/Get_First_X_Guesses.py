@@ -23,10 +23,18 @@ def get_first_X_guesses(path, num_guesses):
     return first_x_guesses
 
 
+def calcualte_avg_length(input_tuple_list):
+    total = 0
+    for i in input_tuple_list:
+        total += len(i[1])
+
+    print(total/len(input_tuple_list))
 
 
 
-
+'''
 for i in get_first_X_guesses("/Users/thomasbekman/git/PasswordPatternExtractor/Password_Cracker/final_formatted_password_store/*",100):
     print(i)
+'''
 
+calcualte_avg_length( get_first_X_guesses("/Users/thomasbekman/git/PasswordPatternExtractor/Password_Cracker/final_formatted_password_store/*",1000))
