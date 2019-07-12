@@ -58,8 +58,8 @@ def plot_crack_calculation(char_filepath,char_assoc_filepath):
 
     #plt.axis([1, 10000, 1, 100000])
     plt.loglog()
-    char_line, = plt.plot(num_cracked_list, num_guesses_list)
-    assoc_line, = plt.plot(num_cracked_list_1, num_guesses_list_1)
+    char_line, = plt.plot(num_guesses_list,num_cracked_list)
+    assoc_line, = plt.plot(num_guesses_list_1,num_cracked_list_1)
 
 
 #    plt.legend(handles=[char_line, assoc_line])
@@ -67,10 +67,10 @@ def plot_crack_calculation(char_filepath,char_assoc_filepath):
 
 
 
-    plt.xlabel("Number of Passwords Cracked")
-    plt.ylabel("Number of Guesses")
+    plt.ylabel("Number of Passwords Cracked")
+    plt.xlabel("Number of Guesses")
     plt.show()
-plot_crack_calculation("/Users/thomasbekman/graded_password_char_Maybe/*","/Users/thomasbekman/graded_password_assoc/*")
+#plot_crack_calculation("/Users/thomasbekman/graded_password_char_Maybe/*","/Users/thomasbekman/graded_password_assoc/*")
 #Further Analysis
 
 '''
@@ -99,7 +99,7 @@ def password_crack_count(path):
                     f_count +=1
                     pass
     return total_count, f_count, pass_count
-print(password_crack_count("/Users/thomasbekman/graded_password_char_Maybe/*"))
+#print(password_crack_count("/Users/thomasbekman/graded_password_char_Maybe/*"))
 
 
 #Average Number of guesses until a password is cracked.
@@ -140,9 +140,15 @@ def compare_runs(char_filepath, char_assoc_filepath):
     plot_crack_calculation(char_filepath, char_assoc_filepath)
 
 
-compare_runs("/Users/thomasbekman/graded_password_char_Maybe/*","/Users/thomasbekman/graded_password_assoc/*")
+compare_runs("/home/thomas/Desktop/To_Transfer/char_graded_password/*","/home/thomas/Desktop/To_Transfer/char_assoc_graded_pass/*")
+
+'''
 
 
+
+
+
+'''
 
 
 

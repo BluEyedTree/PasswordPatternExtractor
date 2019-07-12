@@ -1,4 +1,4 @@
-import glob
+qimport glob
 
 
 def get_first_X_guesses(path, num_guesses):
@@ -37,4 +37,11 @@ for i in get_first_X_guesses("/Users/thomasbekman/git/PasswordPatternExtractor/P
     print(i)
 '''
 
-calcualte_avg_length( get_first_X_guesses("/Users/thomasbekman/git/PasswordPatternExtractor/Password_Cracker/final_formatted_password_store/*",1000))
+#/home/thomas/git/PasswordPatternExtractor/Password_Cracker/Most_recent_run_3_char_alone/final_formatted_password_store
+#/home/thomas/git/PasswordPatternExtractor/Password_Cracker/Most_recent_run_Run_3_Char_Assoc_Store/final_formatted_password_store
+print("Char Alone Length")
+print(calcualte_avg_length( get_first_X_guesses("/home/thomas/git/PasswordPatternExtractor/Password_Cracker/Most_recent_run_3_char_alone/final_formatted_password_store/*",100000000)))
+
+
+print("Char + Association Length")
+print(calcualte_avg_length( get_first_X_guesses("/home/thomas/git/PasswordPatternExtractor/Password_Cracker/Most_recent_run_Run_3_Char_Assoc_Store/final_formatted_password_store/*",100000000)))
